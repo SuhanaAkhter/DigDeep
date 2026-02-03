@@ -1,3 +1,68 @@
 body {
     background-color: #f7efda;
+    font-family: Etna, sans-serif;
+    text-transform: lowercase;
+}
+
+/* Layout spacing */
+.landing {
+    padding-left: 5%;
+}
+
+/* Headings */
+.hey {
+    font-size: 64px;
+    font-weight: bold;
+    color: #7a6b5d;
+}
+
+.welcome {
+    font-size: 64px;
+    color: #7a6b5d;
+    margin-bottom: -10px;
+}
+
+/* Logo */
+.logo {
+    width: 850px;
+    display: flex;
+    justify-content: center; /* Centers horizontally */
+    align-items: center;     /* Centers vertically */
+}
+
+/* Buttons column */
+.button-section {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Custom buttons */
+.custom-btn {
+    width: 180px;
+    padding: 15px;
+    font-size: 32px;
+    border-radius: 10px;
+    text-transform: lowercase;
+    font-weight: bold;
+}
+
+/* Sign up */
+.signup {
+    background-color: #8a8d6b;
+    color: #3d3d3d;
+    border: none;
+}
+
+/* Login */
+.login {
+    background-color: #8a8d6b;
+    color: #3d3d3d;
+    border: none;
+}
+
+
+@font-face{
+    font-family: 'Etna';
+    src: url('/frontend/assets/fonts/etna-free-font.otf') format('opentype'), /* Path to your font file */
 }
