@@ -1,51 +1,87 @@
-body {
-    background-color: #f7efda;
-    font-family: Etna, sans-serif;
-    text-transform: lowercase;
-}
-
 /* Layout spacing */
 .landing {
     padding-left: 5%;
 }
 
-/* Headings */
+/* Color Palette */
+:root {
+    --bg-cream: #F5EBD7;
+    --text-brown: #6B5B4E;
+    --button-olive: #929375; /* Closer to your Canva mockup */
+    --button-text: #4A4A4A;
+}
+
+body {
+    background-color: #f7efda;
+    font-family: 'Etna', sans-serif;
+    color: var(--text-brown);
+    overflow-x: hidden;
+}
+
+.hero-content {
+    display: flex;
+    flex-direction: column;
+    padding-left: 8%; /* Adjust to match the Canva "gutter" space */
+}
+
+.header-text {
+    margin-bottom: -40px; /* Pulls the logo up closer to the text */
+}
+
 .hey {
-    font-size: 64px;
+    font-size: 80px; /* Scaled up to match mockup impact */
     font-weight: bold;
     color: #7a6b5d;
+    margin-bottom: -15px; /* Tighter spacing between 'hey' and 'welcome' */
 }
 
 .welcome {
-    font-size: 64px;
+    font-size: 60px;
     color: #7a6b5d;
-    margin-bottom: -10px;
+    margin-bottom: -100px; /* Tighter spacing between 'hey' and 'welcome' */
 }
 
-/* Logo */
-.logo {
-    width: 850px;
-    display: flex;
-    justify-content: center; /* Centers horizontally */
-    align-items: center;     /* Centers vertically */
+.main-logo {
+    width: 900px; /* Adjust based on your actual file size */
+    margin-left: 100px; /* This creates that offset "staircase" look from the mockup */
+    height: auto;
 }
 
-/* Buttons column */
-.button-section {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
+/* Buttons */
+.button-group {
+    gap: 15px;
 }
 
-/* Custom buttons */
 .custom-btn {
-    width: 180px;
-    padding: 15px;
-    font-size: 32px;
-    border-radius: 10px;
-    text-transform: lowercase;
+    background-color: var(--button-olive);
+    color: var(--button-text) !important;
+    width: 220px;
+    padding: 12px 0;
+    font-size: 2.2rem;
     font-weight: bold;
+    border-radius: 12px;
+    border: none;
+    transition: transform 0.2s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
+
+.custom-btn:hover {
+    transform: translateY(-2px);
+    background-color: #838565;
+}
+
+/* Mobile Adjustment */
+@media (max-width: 992px) {
+    .text-group {
+        margin-top: 50px;
+    }
+    .button-group {
+        margin-top: 40px;
+        margin-bottom: 50px;
+    }
+}
+
+
 
 /* Sign up */
 .signup {

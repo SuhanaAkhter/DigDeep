@@ -10,22 +10,32 @@
 </head>
 <body>
 
-  <main class="container mt-5">
-    <h2>Login</h2>
-
-    <form id="loginForm">
-      <div class="mb-3">
-        <label>Email</label>
-        <input type="email" class="form-control" id="email">
+  <main class="container-fluid min-vh-100 d-flex align-items-center">
+    <div class="row w-100 justify-content-center align-items-center">
+      
+      <div class="col-md-5 offset-md-1">
+        <h1 class="page-title">login</h1>
+        
+        <form id="loginForm" class="custom-form">
+          <div class="mb-3">
+            <input type="text" class="form-control custom-input pink" id="name" placeholder="name">
+          </div>
+          <div class="mb-3 d-flex align-items-center">
+            <input type="email" class="form-control custom-input pink" id="email" placeholder="email">
+            <button type="submit" class="submit-arrow-btn">
+               <img src="../assets/icons/arrow_icon.png" alt="submit" class="submit-arrow">
+            </button>
+          </div>
+          <div class="mb-1">
+            <a href="#" class="forgot-link">forgot your password?</a>
+          </div>
+        </form>
       </div>
-
-      <div class="mb-3">
-        <label>Password</label>
-        <input type="password" class="form-control" id="password">
+  
+      <div class="col-md-5">
+        <img src="../assets/images/logo.png" alt="Dig Deep Logo" class="signup-logo">
       </div>
-
-      <button type="submit" class="btn btn-primary">Login</button>
-    </form>
+    </div>
   </main>
 
   <script src="../js/auth.js"></script>

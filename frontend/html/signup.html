@@ -10,35 +10,39 @@
 </head>
 <body>
 
-  <main class="container mt-5">
-    <h2>Create an Account</h2>
-
-    <form id="signupForm">
-      <div class="mb-3">
-        <label>Name</label>
-        <input type="text" class="form-control" id="name">
+  <main class="container-fluid min-vh-100 d-flex align-items-center">
+    <div class="row w-100 justify-content-center align-items-center">
+      
+      <div class="col-md-5 offset-md-1">
+        <h1 class="page-title">sign up</h1>
+        
+        <form id="signupForm" class="custom-form">
+          <div class="mb-3">
+            <input type="text" class="form-control custom-input pink" id="name" placeholder="name">
+          </div>
+          <div class="mb-3">
+            <input type="email" class="form-control custom-input pink" id="email" placeholder="email">
+          </div>
+          <div class="mb-3">
+            <select class="form-select custom-input olive" id="role">
+              <option selected disabled>role</option>
+              <option value="player">player</option>
+              <option value="coach">coach</option>
+            </select>
+          </div>
+          <div class="mb-3 d-flex align-items-center">
+            <input type="password" class="form-control custom-input olive" id="password" placeholder="password">
+            <button type="submit" class="submit-arrow-btn">
+               <img src="../assets/icons/arrow_icon.png" alt="submit" class="submit-arrow">
+            </button>
+          </div>
+        </form>
       </div>
-
-      <div class="mb-3">
-        <label>Email</label>
-        <input type="email" class="form-control" id="email">
+  
+      <div class="col-md-5">
+        <img src="../assets/images/logo.png" alt="Dig Deep Logo" class="signup-logo">
       </div>
-
-      <div class="mb-3">
-        <label>Password</label>
-        <input type="password" class="form-control" id="password">
-      </div>
-
-      <div class="mb-3">
-        <label>Role</label>
-        <select class="form-select" id="role">
-          <option value="player">Player</option>
-          <option value="coach">Coach</option>
-        </select>
-      </div>
-
-      <button type="submit" class="btn btn-primary">Sign Up</button>
-    </form>
+    </div>
   </main>
 
   <script src="../js/auth.js"></script>
