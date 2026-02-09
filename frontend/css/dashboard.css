@@ -1,0 +1,100 @@
+:root {
+    --bg-cream: #F5EBD7;
+    --pill-pink: #E5B7B7;
+    --text-brown: #6B5B4E;
+    --dropdown-tan: #D6C2A7;
+    --white: #FFFFFF;
+}
+
+body {
+    background-color: var(--bg-cream);
+    font-family: 'Etna', sans-serif;
+    color: var(--text-brown);
+    text-transform: lowercase;
+    overflow-x: hidden;
+}
+
+/* Navbar Container */
+.nav-pill-container {
+    background-color: var(--pill-pink);
+    border-radius: 50px;
+    padding: 10px 40px;
+    margin-top: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* Nav Links & Dropdowns */
+.nav-item-custom {
+    position: relative;
+    background-color: var(--white);
+    border-radius: 15px;
+    padding: 5px 20px;
+    font-weight: bold;
+    font-size: 1.2rem;
+    cursor: pointer;
+    margin-right: 15px;
+}
+
+.dropdown-menu-custom {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--dropdown-tan);
+    border-radius: 0 0 15px 15px;
+    min-width: 100%;
+    padding: 10px;
+    z-index: 1000;
+}
+
+.nav-item-custom:hover .dropdown-menu-custom {
+    display: block;
+}
+
+.dropdown-item-custom {
+    color: var(--white);
+    padding: 5px 10px;
+    display: block;
+    text-decoration: none;
+}
+
+.dropdown-item-custom:hover {
+    text-decoration: underline;
+}
+
+/* Profile Section */
+.profile-area {
+    position: absolute;
+    right: 10%;
+    top: 50%;
+    transform: translateY(-50%);
+    text-align: center;
+}
+
+.profile-circle {
+    width: 100px;
+    height: 100px;
+    background-color: var(--pill-pink);
+    border-radius: 50%;
+    margin: 0 auto 10px;
+}
+
+.user-name {
+    font-size: 1.5rem;
+    font-weight: bold;
+}
+
+/* Welcome Text */
+.welcome-msg {
+    margin-top: 15vh;
+    margin-left: 10%;
+}
+
+.hey-text {
+    font-size: 5rem;
+    font-weight: 800;
+    margin-bottom: -10px;
+}
