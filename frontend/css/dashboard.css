@@ -54,6 +54,12 @@ body {
     display: block;
 }
 
+.navbar-link {
+    color: var(--text-brown);
+    display: block;
+    text-decoration: none;
+}
+
 .dropdown-item-custom {
     color: var(--white);
     padding: 5px 10px;
@@ -89,12 +95,12 @@ body {
 
 /* Welcome Text */
 .welcome-msg {
-    margin-top: 15vh;
+    margin-top: 28vh;
     margin-left: 10%;
 }
 
 .hey-text {
     font-size: 5rem;
     font-weight: 800;
-    margin-bottom: -10px;
+    margin-bottom: 10px;
 }
