@@ -1,43 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="../css/dashboard.css">
-    <title>Player Dashboard | Dig Deep</title>
+  <meta charset="UTF-8">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <title>Player Dashboard | Dig Deep</title>
 </head>
 <body>
-
-    <div class="container">
-        <nav class="nav-pill-container">
-            <div class="d-flex align-items-center">
-              <div class="nav-item-custom"><a href="player-stats.html" class="navbar-link">my stats</a></div>
-                <div class="nav-item-custom">
-                    team info ▼
-                    <div class="dropdown-menu-custom">
-                        <a href="team-stats.html" class="dropdown-item-custom">team stats</a>
-                        <a href="heatmap.html" class="dropdown-item-custom">court</a>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="d-flex align-items-center">
-                <div class="nav-item-custom"><a href="account-settings.html" class="navbar-link">settings</a></div>
-                <img src="../assets/icons/close_x.png" style="width:30px; margin-left:10px;">
-            </div>
-        </nav>
-
-        <div class="welcome-msg">
-            <h1 class="hey-text">hey!</h1>
-            <h3>welcome to digdeep....</h3>
+  <div class="container-fluid px-5">
+     <nav class="nav-pill-container">
+      <div class="d-flex align-items-center">
+        <div class="nav-item-custom">
+            <a href="player-stats.html" class="navbar-link">my stats</a>
         </div>
-
-        <div class="profile-area">
-            <div class="profile-circle"></div>
-            <div class="user-name">your name</div>
-            <div>player</div>
+    
+        <div class="nav-item-custom">
+            team info ▼
+            <div class="dropdown-menu-custom">
+                <a href="team-stats.html" class="dropdown-item-custom">team stats</a>
+                <a href="heatmap.html" class="dropdown-item-custom">court</a>
+            </div>
         </div>
+      </div>
+
+      <div class="d-flex align-items-center">
+        <div class="nav-item-custom">
+          <a href="account-settings.html" class="navbar-link">settings</a>
+        </div>
+        <span class="role-tag">coach</span>
+        <a href="index.html">
+          <img src="../assets/icons/close_x.png" alt="logout" style="width:30px;">
+        </a>
+      </div>
+    </nav>
+
+   
+
+    <div class="row">
+      <div class="col-md-7">
+        <div style="margin-top: 15vh;">
+          <h1 style="font-size: 5rem; font-weight: 900;">hey!</h1>
+          <h2 style="font-size: 2.5rem;">welcome to digdeep....</h2>
+        </div>
+        <div class="profile-group">
+          <div class="profile-circle"></div>
+          <div>
+            <h3 style="font-weight: bold; margin-bottom: 0;">your name</h3>
+            <p>player</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-4 offset-md-1">
+        <div class="featured-sidebar">
+          <h2 class="sidebar-title">featured games</h2>
+          <p>view all games</p>
+          
+          <div class="game-card">
+            <p class="game-title">MHS VS De la Salle</p>
+            <div class="game-score">3-0</div>
+            <p>it's a clean sweep!</p>
+          </div>
+
+          <div class="game-card">
+            <p class="game-title">MHS VS LDH</p>
+            <div class="game-score">31 kills</div>
+            <p>someone got murdered...</p>
+          </div>
+        </div>
+      </div>
     </div>
-
+  </div>
 </body>
 </html>
