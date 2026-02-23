@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../css/dashboard.css">
+  <link rel="stylesheet" href="../css/game-stats.css">
+  <title>Season Games | Dig Deep</title>
+</head>
+<body>
+  <div class="container-fluid px-5">
+    <nav class="nav-pill-container">
+        <div class="d-flex align-items-center">
+          <div class="nav-item-custom">
+            my team ▾
+            <div class="dropdown-menu-custom">
+              <a href="manage-players.html" class="dropdown-item-custom">players</a>
+              <a href="team-stats.html" class="dropdown-item-custom">stats</a>
+              <a href="game-stats.html" class="dropdown-item-custom">games</a>
+            </div>
+          </div>
+          <div class="nav-item-custom"><a href="permissions.html" class="navbar-link">permissions</a></div>
+        </div>
+        <div class="d-flex align-items-center">
+          <div class="nav-item-custom">settings</div>
+          <img src="../assets/icons/close_x.png" style="width:30px; cursor:pointer;" onclick="window.location.href='coach-dashboard.html'">
+        </div>
+    </nav>
+
+    <div class="row mt-4">
+      <div class="col-md-3">
+        <h1 class="page-header-text">this season's<br>GAMES</h1>
+        <div class="featured-sidebar mt-4">
+            <h2 class="sidebar-title">featured games</h2>
+            <div class="game-card pink-card">
+              <p class="game-title">MHS VS De la Salle</p>
+              <div class="game-score">3-0</div>
+            </div>
+            <div class="game-card pink-card mt-3">
+              <p class="game-title">MHS VS LDH</p>
+              <div class="game-score">31 kills</div>
+            </div>
+        </div>
+      </div>
+
+      <div class="col-md-9">
+        <div class="games-grid">
+            <div class="game-box pink" onclick="showModal('viewGameModal')">MHS VS De la Salle<br><span class="display-4 fw-bold">3-0</span></div>
+            <div class="game-box olive">MHS VS De la Salle</div>
+            <div class="game-box pink">MHS VS De la Salle</div>
+            <div class="game-box brown">MHS VS De la Salle</div>
+            <div class="game-box olive">MHS VS De la Salle</div>
+            <div class="game-box add-btn" onclick="showModal('addGameModal')">+</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="addGameModal" class="custom-modal">
+    <div class="modal-content-small">
+      <div class="modal-header-custom">
+        <span>add game</span>
+        <button class="close-modal" onclick="hideModal('addGameModal')">✖</button>
+      </div>
+      <div class="modal-body-custom">
+        <h2>MHS VS.....</h2>
+        <div class="d-flex align-items-center gap-2">
+            <label>opposing school:</label>
+            <input type="text" class="lorem-input" placeholder="lorem">
+        </div>
+        <button class="save-btn-floating" onclick="hideModal('addGameModal'); showModal('editGameModal')">save changes</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="viewGameModal" class="custom-modal">
+    <div class="modal-content-large">
+      <div class="modal-header-custom">
+        <span class="text-uppercase">MHS VS <span class="text-pink">DE LA SALLE</span></span>
+        <div class="d-flex align-items-center gap-3">
+            <span class="header-action-text" onclick="hideModal('viewGameModal'); showModal('editGameModal')">stats</span>
+            <button class="close-modal" onclick="hideModal('viewGameModal')">✖</button>
+        </div>
+      </div>
+      <div class="modal-body-custom row">
+        <div class="col-4">
+            <div class="set-score-box active">SET #1<br>25-23</div>
+            <div class="set-score-box mt-2">SET #2<br>19-25</div>
+            <div class="set-score-box mt-2 disabled">SET #3</div>
+        </div>
+        <div class="col-8">
+            <div class="row g-2">
+                <div class="col-4"><div class="stat-mini-card olive">kills<br>15</div></div>
+                <div class="col-4"><div class="stat-mini-card pink">aces<br>15</div></div>
+                <div class="col-4"><div class="stat-mini-card brown">blocks<br>15</div></div>
+            </div>
+            <div class="featured-player-tag mt-4">featured player: NANCY</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="editGameModal" class="custom-modal">
+    <div class="modal-content-large">
+      <div class="modal-header-custom">
+        <span class="text-uppercase">MHS VS <span class="text-pink">DE LA SALLE</span></span>
+        <div class="d-flex align-items-center gap-3">
+            <span class="header-action-text">edit</span>
+            <button class="close-modal" onclick="showModal('exitConfirmModal')">✖</button>
+        </div>
+      </div>
+      <div class="modal-body-custom row">
+        <div class="col-4">
+            <div class="edit-set-box">
+                <span>SET #1</span>
+                <span class="display-6">25-23</span>
+                <img src="../assets/icons/arrow_up.png" class="up-arrow">
+            </div>
+            <div class="add-set-box mt-2">add SET #2<br>+</div>
+        </div>
+        <div class="col-8">
+            <div class="d-flex gap-2">
+                <div class="edit-stat-col olive">kills <span>+</span><br><small>Bernice Lu<br>Chloe Vezeau</small></div>
+                <div class="edit-stat-col pink">aces <span>+</span></div>
+                <div class="edit-stat-col brown">blocks <span>+</span></div>
+                <div class="edit-stat-col light-brown">digs <span>+</span></div>
+            </div>
+            <button class="save-btn-floating" onclick="hideModal('editGameModal')">save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="exitConfirmModal" class="custom-modal alert-layer">
+    <div class="modal-content-alert">
+      <div class="modal-header-alert">
+        <span>error!</span>
+        <button class="close-modal-sm" onclick="hideModal('exitConfirmModal')">✖</button>
+      </div>
+      <div class="modal-body-alert text-center">
+        <p>Are you sure you want to exit without saving your changes?</p>
+        <div class="d-flex justify-content-center gap-3">
+            <button class="alert-btn" onclick="location.reload()">yes</button>
+            <button class="alert-btn" onclick="hideModal('exitConfirmModal')">no</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function showModal(id) { document.getElementById(id).style.display = 'flex'; }
+    function hideModal(id) { document.getElementById(id).style.display = 'none'; }
+  </script>
+</body>
+</html>
