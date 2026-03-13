@@ -3,17 +3,19 @@ PRAGMA foreign_keys = ON;
 -------------------------------
 -- USERS w/ authentication, roles
 -------------------------------
-CREATE TABLE users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT
+-- Stores all user accounts with role-based access (player or coach).
+CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN 'player', 'coach')),
+    role TEXT NOT NULL CHECK (role IN ('player', 'coach'))
 );
 
 --------------------------------
 -- TEAMS 
 --------------------------------
-CREATE TABLE teams (
+-- Stores team information. A team belongs to a season.
+CREATE TABLE IF NOT EXISTS teams (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     team_name TEXT NOT NULL UNIQUE,
     season TEXT
@@ -22,12 +24,17 @@ CREATE TABLE teams (
 --------------------------------
 -- PLAYERS 
 --------------------------------
-CREATE TABLE players (
+-- Stores player profiles. Each player is linked to a user account and a team.
+-- name and picture are stored here because they are display fields, not auth fields.
+CREATE TABLE IF NOT EXISTS players (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     user_id INTEGER UNIQUE,
     team_id INTEGER,
+    name TEXT,
+    grade TEXT,
     jersey_number INTEGER,
     position TEXT,
+    picture TEXT,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE SET NULL,
     FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
 );
@@ -35,17 +42,29 @@ CREATE TABLE players (
 --------------------------------
 -- GAMES 
 --------------------------------
-CREATE TABLE games (
+-- Stores one row per game. A game belongs to a team and records the opponent and result.
+-- Stats are tracked separately in player_stats, not here.
+CREATE TABLE IF NOT EXISTS games (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     team_id INTEGER NOT NULL,
+    opponent TEXT NOT NULL,
+    game_date TEXT,
+    season TEXT,
+    FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
+);
+
+
+-- Stores per-player stats for each game. One row per player per game.
+CREATE TABLE IF NOT EXISTS player_stats (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    game_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
     kills INTEGER DEFAULT 0,
     assists INTEGER DEFAULT 0,
     aces INTEGER DEFAULT 0,
     blocks INTEGER DEFAULT 0,
     digs INTEGER DEFAULT 0,
-    season TEXT
-    FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE,
+    FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE,
     UNIQUE (game_id, player_id)
 );
@@ -53,7 +72,9 @@ CREATE TABLE games (
 --------------------------------
 -- HEAT MAP EVENTS 
 --------------------------------
-CREATE TABLE heatmap_events (
+-- Stores individual ball-drop or event click coordinates for the heatmap feature.
+-- event_type distinguishes between kills, aces, digs, etc. on the court.
+CREATE TABLE IF NOT EXISTS heatmap_events (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     game_id INTEGER NOT NULL,
     player_id INTEGER NOT NULL,
@@ -64,5 +85,3 @@ CREATE TABLE heatmap_events (
     FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
 );
-
-
