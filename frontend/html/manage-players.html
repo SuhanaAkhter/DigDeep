@@ -9,6 +9,7 @@
       - Search players by name
       - Filter players by position (supports multiple positions)
       - Click a player to see detailed info
+      - Add Player popup form (pink box)
       - Dynamic rendering from API endpoint /api/players/
   -->
   <meta charset="UTF-8">
@@ -16,7 +17,8 @@
   <link rel="stylesheet" href="../css/dashboard.css">
   <link rel="stylesheet" href="../css/manage-players.css">
   <title>Manage Players | Dig Deep</title>
-
+</head>
+<body>
   <!-- ================== NAVIGATION ================== -->
   <div class="container-fluid px-5 mt-3">
     <nav class="nav-pill-container mb-4">
@@ -46,7 +48,6 @@
         <!-- Search + Filter -->
         <div class="d-flex align-items-center mb-4 gap-3">
           <input type="text" id="searchInput" class="search-input" placeholder="name...">
-
           <div class="filter-group d-flex align-items-center gap-2">
             <span>filter by:</span>
             <label><input type="checkbox" class="position-filter" value="Right" checked> right</label>
@@ -74,7 +75,6 @@
             </div>
           </div>
           <button class="view-stats-btn mt-4">view stats</button>
-
           <div class="featured-game-mini mt-4">
             <p class="mb-1">featured game:</p>
             <div id="featuredGame" class="game-tag"></div>
@@ -84,16 +84,40 @@
     </div>
   </div>
 
-  <!-- ================== JAVASCRIPT ================== i didn't know what folder to put in... -->
-  <script>
-    /*
-      Manage Players Script
-      --------------------
-      - Fetches player data from /api/players/
-      - Filters players by name and multiple positions
-      - Displays a selected player's detailed info
-    */
+  <!-- ================== ADD PLAYER POPUP ================== -->
+  <div id="addPlayerPopup" style="
+      display:none;
+      position: fixed;
+      top:50%; left:50%;
+      transform: translate(-50%, -50%);
+      background-color: #f8d7da;
+      border-radius: 15px;
+      padding: 20px;
+      width: 300px;
+      box-shadow: 0 0 15px rgba(0,0,0,0.3);
+      z-index: 1000;
+  ">
+    <h4 class="text-center">Add Player</h4>
+    <div class="mb-2">
+      <label>Name</label>
+      <input type="text" id="newPlayerName" class="form-control">
+    </div>
+    <div class="mb-2">
+      <label>Grade</label>
+      <input type="number" id="newPlayerGrade" class="form-control">
+    </div>
+    <div class="mb-2">
+      <label>Positions (comma-separated)</label>
+      <input type="text" id="newPlayerPositions" class="form-control">
+    </div>
+    <div class="d-flex justify-content-end gap-2 mt-3">
+      <button class="btn btn-secondary btn-sm" id="cancelAddPlayer">Cancel</button>
+      <button class="btn btn-primary btn-sm" id="saveAddPlayer">Add</button>
+    </div>
+  </div>
 
+  <!-- ================== JAVASCRIPT ================== -->
+  <script>
     const playersGrid = document.getElementById('playersGrid');
     const playerDetailCard = document.getElementById('playerDetailCard');
     const playerNameEl = document.getElementById('playerName');
@@ -101,7 +125,6 @@
     const featuredGameEl = document.getElementById('featuredGame');
 
     let playersData = [
-      // Example static data (replace with API fetch)
       {name:'Linda', grade:12, position:'Middle, Left', featuredGame:'MHS VS LDH'},
       {name:'John', grade:11, position:'Right', featuredGame:'LDH VS MHS'},
       {name:'Alice', grade:10, position:'Setter', featuredGame:'MHS VS LDH'},
@@ -109,14 +132,11 @@
       {name:'Eve', grade:11, position:'Middle', featuredGame:'MHS VS LDH'}
     ];
 
-    // Initialize players grid
-    displayPlayers(playersData);
-
+    // ================== DISPLAY PLAYERS ==================
     function displayPlayers(players) {
       playersGrid.innerHTML = '';
       if (players.length === 0) {
         playersGrid.innerHTML = '<p class="text-muted">No players match the filter.</p>';
-        return;
       }
 
       players.forEach(player => {
@@ -130,7 +150,24 @@
         col.addEventListener('click', () => showPlayerDetail(player));
         playersGrid.appendChild(col);
       });
+
+      // Add Player card
+      const addCol = document.createElement('div');
+      addCol.className = 'col text-center';
+      addCol.innerHTML = `
+        <div class="player-square-add" style="cursor:pointer;">
+          <img src="../assets/icons/upload_arrow.png" alt="add" style="width:40px;">
+        </div>
+        <p class="m-0 fw-bold">add player</p>
+        <small>&nbsp;</small>
+      `;
+      addCol.addEventListener('click', () => {
+        document.getElementById('addPlayerPopup').style.display = 'block';
+      });
+      playersGrid.appendChild(addCol);
     }
+
+    displayPlayers(playersData);
 
     function showPlayerDetail(player) {
       playerDetailCard.style.display = 'block';
@@ -143,14 +180,11 @@
       featuredGameEl.textContent = player.featuredGame || 'N/A';
     }
 
-    // Search input
+    // ================== SEARCH & FILTER ==================
     document.getElementById('searchInput').addEventListener('input', filterPlayers);
-
-    // Position filters
     const checkboxes = document.querySelectorAll('.position-filter');
     checkboxes.forEach(cb => cb.addEventListener('change', filterPlayers));
 
-    // Multi-position filter function
     function filterPlayers() {
       const searchText = document.getElementById('searchInput').value.toLowerCase();
       const selectedPositions = Array.from(checkboxes)
@@ -164,6 +198,34 @@
       });
       displayPlayers(filtered);
     }
+
+    // ================== ADD PLAYER FORM ==================
+    document.getElementById('cancelAddPlayer').addEventListener('click', () => {
+      document.getElementById('addPlayerPopup').style.display = 'none';
+    });
+
+    document.getElementById('saveAddPlayer').addEventListener('click', () => {
+      const name = document.getElementById('newPlayerName').value.trim();
+      const grade = parseInt(document.getElementById('newPlayerGrade').value);
+      const positions = document.getElementById('newPlayerPositions').value.trim();
+
+      if (!name || isNaN(grade) || !positions) {
+        alert("Please fill in all fields correctly!");
+        return;
+      }
+
+      const newPlayer = {name, grade, position: positions, featuredGame: ''};
+      playersData.push(newPlayer);
+
+      // Clear form & hide popup
+      document.getElementById('newPlayerName').value = '';
+      document.getElementById('newPlayerGrade').value = '';
+      document.getElementById('newPlayerPositions').value = '';
+      document.getElementById('addPlayerPopup').style.display = 'none';
+
+      displayPlayers(playersData);
+    });
   </script>
+  <script type="module" src="../js/player-stats.js"></script>
 </body>
 </html>

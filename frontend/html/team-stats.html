@@ -9,28 +9,30 @@
 </head>
 <body>
   <div class="container-fluid px-5">
-    <nav class="nav-pill-container">
+    <!-- Navbar -->
+    <nav class="nav-pill-container d-flex justify-content-between align-items-center py-3">
       <div class="d-flex align-items-center">
-        <div class="nav-item-custom">
+        <div class="nav-item-custom position-relative">
           my team ▾
-          <div class="dropdown-menu-custom">
+          <div class="dropdown-menu-custom position-absolute">
             <a href="manage-players.html" class="dropdown-item-custom">players</a>
             <a href="team-stats.html" class="dropdown-item-custom">stats</a>
             <a href="game-stats.html" class="dropdown-item-custom">games</a>
           </div>
         </div>
-        <div class="nav-item-custom"><a href="permissions.html" class="navbar-link">permissions</a></div>
+        <div class="nav-item-custom ms-3"><a href="permissions.html" class="navbar-link">permissions</a></div>
       </div>
       <div class="d-flex align-items-center">
-        <div class="nav-item-custom">settings</div>
+        <div class="nav-item-custom me-3">settings</div>
         <img src="../assets/icons/close_x.png" style="width:30px; cursor:pointer;" onclick="window.location.href='coach-dashboard.html'">
       </div>
-  </nav>
+    </nav>
 
+    <!-- Main Content -->
     <div class="row mt-5">
+      <!-- Stats Cards -->
       <div class="col-md-7">
         <h1 class="stats-header">team season stats</h1>
-        
         <div class="row g-4 mt-2">
           <div class="col-md-4">
             <div class="stat-card olive">
@@ -71,17 +73,16 @@
         </div>
       </div>
 
+      <!-- Featured Games Sidebar -->
       <div class="col-md-4 offset-md-1">
         <div class="featured-sidebar">
           <h2 class="sidebar-title">featured games</h2>
           <p>view all games</p>
-          
           <div class="game-card">
             <p class="game-title">MHS VS De la Salle</p>
             <div class="game-score">3-0</div>
             <p>it's a clean sweep!</p>
           </div>
-
           <div class="game-card">
             <p class="game-title">MHS VS LDH</p>
             <div class="game-score">31 kills</div>
@@ -91,5 +92,8 @@
       </div>
     </div>
   </div>
+
+  <!-- JS -->
+  <script src="../js/team-stats.js"></script>
 </body>
 </html>
