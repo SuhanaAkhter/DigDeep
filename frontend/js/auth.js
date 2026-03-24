@@ -10,9 +10,9 @@ if (signupForm) {
 
         // 2. Logic to redirect based on the role
         if (role === 'coach') {
-            window.location.href = "coach-dashboard.html";
+            window.location.href = "../coach/coach-dashboard.html";
         } else if (role === 'player') {
-            window.location.href = "player-dashboard.html";
+            window.location.href = "../player/player-dashboard.html";
         } else {
             // This runs if they click the arrow without picking a role
             alert("please select a role first!");
