@@ -3,32 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../css/dashboard.css">
-  <title>Player Dashboard | Dig Deep</title>
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <title>Coach Dashboard | Dig Deep</title>
 </head>
 <body>
   <div class="container-fluid px-5">
     <nav class="nav-pill-container">
       <div class="d-flex align-items-center">
+        <div class="nav-item-custom"><a href="coach-dashboard.html" class="navbar-link">dashboard</a></div>
         <div class="nav-item-custom">
-            <a href="player-stats.html" class="navbar-link">my stats</a>
+          my team ▾
+          <div class="dropdown-menu-custom">
+            <a href="manage-players.html" class="dropdown-item-custom">players</a>
+            <a href="manage-games.html" class="dropdown-item-custom">games</a>
+            <a href="../shared/team-stats.html" class="dropdown-item-custom">stats</a>
+          </div>
         </div>
+        
         <div class="nav-item-custom">
-          <a href="team-stats.html" class="navbar-link">team stats</a>
+          <a href="../shared/permissions.html" class="navbar-link">permissions</a>
         </div>
-    
+      </div>
+
       <div class="d-flex align-items-center">
         <div class="nav-item-custom">
-          <a href="account-settings.html" class="navbar-link">settings</a>
+          <a href="../shared/account-settings.html" class="navbar-link">settings</a>
         </div>
-        <span class="role-tag">player</span>
-        <a href="index.html">
-          <img src="../assets/icons/close_x.png" alt="logout" style="width:30px;">
-        </a>
+        <span class="role-tag">coach</span>
       </div>
     </nav>
-
-   
 
     <div class="row">
       <div class="col-md-7">
@@ -40,7 +43,7 @@
           <div class="profile-circle"></div>
           <div>
             <h3 style="font-weight: bold; margin-bottom: 0;">your name</h3>
-            <p>player</p>
+            <p>coach</p>
           </div>
         </div>
       </div>
@@ -48,7 +51,9 @@
       <div class="col-md-4 offset-md-1">
         <div class="featured-sidebar">
           <h2 class="sidebar-title">featured games</h2>
-          <p>view all games</p>
+          <a href="all-games.html" style="color: inherit; text-decoration: underline;">
+            <p>view all games</p>
+          </a>
           
           <div class="game-card">
             <p class="game-title">MHS VS De la Salle</p>

@@ -3,29 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../css/dashboard.css">
-  <link rel="stylesheet" href="../css/team-stats.css">
+  <link rel="stylesheet" href="../../css/dashboard.css">
+  <link rel="stylesheet" href="../../css/team-stats.css">
   <title>Team Stats | Dig Deep</title>
 </head>
 <body>
   <div class="container-fluid px-5">
     <!-- Navbar -->
-    <nav class="nav-pill-container d-flex justify-content-between align-items-center py-3">
+    <nav class="nav-pill-container">
+      <div class="d-flex align-items-center">
+        <div class="nav-item-custom"><a href="../shared/permissions.html" class="navbar-link">permissions</a></div>
+      </div>
       <div class="d-flex align-items-center">
         <div class="nav-item-custom">
-          my team ▾
-          <div class="dropdown-menu-custom">
-            <a href="manage-players.html" class="dropdown-item-custom">players</a>
-            <a href="team-stats.html" class="dropdown-item-custom">stats</a>
-            <a href="game-stats.html" class="dropdown-item-custom">games</a>
-          </div>
+          <a href="../shared/account-settings.html" class="navbar-link">settings</a>
         </div>
-        <div class="nav-item-custom"><a href="permissions.html" class="navbar-link">permissions</a></div>
-      </div>
-    
-      <div class="d-flex align-items-center">
-        <div class="nav-item-custom">settings</div>
-        <img src="../assets/icons/close_x.png" style="width:30px; cursor:pointer;" onclick="window.location.href='coach-dashboard.html'">
       </div>
     </nav>
 
@@ -95,6 +87,6 @@
   </div>
 
   <!-- JS -->
-  <script src="../js/team-stats.js"></script>
+  <script src="../../js/team-stats.js"></script>
 </body>
 </html>
