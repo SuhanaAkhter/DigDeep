@@ -2,7 +2,7 @@ import sqlite3
 from flask import Flask, render_template
 from db import close_db
 
-DATABASE = 'digdeep.db'
+DATABASE = '../digdeep.db'
 
 # Use '../frontend' to jump out of 'backend' and into 'frontend'
 app = Flask(__name__, 
