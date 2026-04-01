@@ -38,36 +38,27 @@ def get_stats_for_player(db, player_id):
 
 
 def get_season_totals_for_player(db, player_id):
-    """
-    Returns aggregated season totals for a single player across all games.
-    Used on the player dashboard stat summary cards.
-    """
     row = db.execute("""
         SELECT
-            SUM(kills)   AS total_kills,
-            SUM(assists) AS total_assists,
-            SUM(aces)    AS total_aces,
-            SUM(blocks)  AS total_blocks,
-            SUM(digs)    AS total_digs,
-            COUNT(*)     AS games_played
-        FROM player_stats
-        WHERE player_id = ?
+            COALESCE(SUM(ps.kills), 0)   AS total_kills,
+            COALESCE(SUM(ps.assists), 0) AS total_assists,
+            COALESCE(SUM(ps.aces), 0)    AS total_aces,
+            COALESCE(SUM(ps.blocks), 0)  AS total_blocks,
+            COALESCE(SUM(ps.digs), 0)    AS total_digs,
+            COUNT(DISTINCT ps.game_id)   AS games_played
+        FROM player_stats ps
+        WHERE ps.player_id = ?
     """, (player_id,)).fetchone()
     return dict(row) if row else {}
 
-
 def get_season_totals_for_team(db, team_id):
-    """
-    Returns aggregated season totals across all players on a team.
-    Used on the team-stats page.
-    """
     row = db.execute("""
         SELECT
-            SUM(ps.kills)   AS total_kills,
-            SUM(ps.assists) AS total_assists,
-            SUM(ps.aces)    AS total_aces,
-            SUM(ps.blocks)  AS total_blocks,
-            SUM(ps.digs)    AS total_digs
+            COALESCE(SUM(ps.kills), 0)   AS total_kills,
+            COALESCE(SUM(ps.assists), 0) AS total_assists,
+            COALESCE(SUM(ps.aces), 0)    AS total_aces,
+            COALESCE(SUM(ps.blocks), 0)  AS total_blocks,
+            COALESCE(SUM(ps.digs), 0)    AS total_digs
         FROM player_stats ps
         JOIN players p ON p.id = ps.player_id
         WHERE p.team_id = ?
