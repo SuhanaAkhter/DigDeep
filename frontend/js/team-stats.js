@@ -1,6 +1,6 @@
 // team-stats.js
 document.addEventListener("DOMContentLoaded", () => {
-  const TEAM_TOTALS_API = "/api/stats/team/totals";
+  const TEAM_TOTALS_API = "http://127.0.0.1:5000/api/stats/team/totals";
 
   // Map HTML stat labels to API keys
   const statMapping = {
@@ -18,37 +18,60 @@ document.addEventListener("DOMContentLoaded", () => {
   const featuredGamesContainer = document.querySelector(".featured-sidebar");
 
   // Function to fetch and populate team totals
+  
   async function loadTeamTotals() {
+    const statCards = document.querySelectorAll(".stat-card");
+  
     try {
-      // Show loading
-      statCards.forEach(card => card.querySelector(".stat-value").textContent = "…");
-
-      const response = await fetch(TEAM_TOTALS_API);
-      const totals = await response.json();
-
-      // Example: calculate derived stats
-      const totalKills = totals.total_kills || 0;
-      const totalBlocks = totals.total_blocks || 0;
-      const totalAces = totals.total_aces || 0;
-      const totalDigs = totals.total_digs || 0;
-      const gamesPlayed = totals.games_played || 1; // prevent div by 0
-
-      // Compute ratios
-      totals.kill_ratio = ((totalKills / (totalKills + totalBlocks + totalDigs)) * 100).toFixed(1);
-      totals.serve_ratio = ((totalAces / (totalAces + totalDigs)) * 100).toFixed(1);
-
-      // Populate stat cards
+      // 1. Show loading (turns - into …)
       statCards.forEach(card => {
-        const label = card.querySelector(".stat-label").textContent.toLowerCase();
+        const val = card.querySelector(".stat-value");
+        if (val) val.textContent = "…";
+      });
+  
+      // 2. Fetch
+      const response = await fetch("/api/stats/team/totals");
+      if (!response.ok) throw new Error("API Route not found");
+      const totals = await response.json();
+  
+      // 3. EXTRACT the values from the 'totals' object (CRITICAL STEP)
+      const kills = totals.total_kills || 0;
+      const blocks = totals.total_blocks || 0;
+      const aces = totals.total_aces || 0;
+      const digs = totals.total_digs || 0;
+  
+      // 4. Calculate Ratios
+      const killDenom = kills + blocks + digs;
+      const serveDenom = aces + digs;
+  
+      const kill_ratio = killDenom > 0 ? ((kills / killDenom) * 100).toFixed(1) : "0.0";
+      const serve_ratio = serveDenom > 0 ? ((aces / serveDenom) * 100).toFixed(1) : "0.0";
+  
+      // 5. Create the data object for the UI
+      const displayData = {
+        "total_kills": kills,
+        "total_aces": aces,
+        "total_blocks": blocks,
+        "total_digs": digs,
+        "kill_ratio": kill_ratio,
+        "serve_ratio": serve_ratio
+      };
+  
+      // 6. Update UI
+      statCards.forEach(card => {
+        const label = card.querySelector(".stat-label").textContent.toLowerCase().trim();
         const key = statMapping[label];
-        if (key && totals[key] !== undefined) {
-          card.querySelector(".stat-value").textContent = totals[key];
+        if (key && displayData[key] !== undefined) {
+          card.querySelector(".stat-value").textContent = displayData[key];
         }
       });
-
+  
     } catch (error) {
-      console.error("Error loading team totals:", error);
-      statCards.forEach(card => card.querySelector(".stat-value").textContent = "ERR");
+      console.error("JS Error:", error);
+      statCards.forEach(card => {
+        const val = card.querySelector(".stat-value");
+        if (val) val.textContent = "ERR";
+      });
     }
   }
 
