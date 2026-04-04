@@ -23,24 +23,24 @@
   <div class="container-fluid px-5 mt-3">
     <nav class="nav-pill-container">
       <div class="d-flex align-items-center">
-        <div class="nav-item-custom"><a href="coach-dashboard.html" class="navbar-link">dashboard</a></div>
+        <div class="nav-item-custom"><a href="coach-dashboard" class="navbar-link">dashboard</a></div>
         <div class="nav-item-custom">
           my team ▾
           <div class="dropdown-menu-custom">
-            <a href="manage-players.html" class="dropdown-item-custom">players</a>
-            <a href="manage-games.html" class="dropdown-item-custom">games</a>
-            <a href="../shared/team-stats.html" class="dropdown-item-custom">stats</a>
+            <a href="manage-players" class="dropdown-item-custom">players</a>
+            <a href="manage-games" class="dropdown-item-custom">games</a>
+            <a href="team-stats" class="dropdown-item-custom">stats</a>
           </div>
         </div>
         
         <div class="nav-item-custom">
-          <a href="../shared/permissions.html" class="navbar-link">permissions</a>
+          <a href="permissions" class="navbar-link">permissions</a>
         </div>
       </div>
 
       <div class="d-flex align-items-center">
         <div class="nav-item-custom">
-          <a href="../shared/account-settings.html" class="navbar-link">settings</a>
+          <a href="account-settings" class="navbar-link">settings</a>
         </div>
         <span class="role-tag">coach</span>
       </div>
@@ -123,7 +123,7 @@
     </div>
   </div>
 
-  <!-- ================== JAVASCRIPT ================== -->
+  <!-- ================== JAVASCRIPT ================== (FOR FAKE DATA -- NOT NEEDED)
   <script>
     const playersGrid = document.getElementById('playersGrid');
     const playerDetailCard = document.getElementById('playerDetailCard');
@@ -232,7 +232,7 @@
 
       displayPlayers(playersData);
     });
-  </script>
-  <script type="module" src="../../js/player-stats.js"></script>
+  </script> -->
+  <script type="module" src="../../js/player.js"></script>
 </body>
 </html>

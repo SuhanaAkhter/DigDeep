@@ -9,7 +9,6 @@
  *  - Adding new players
  */
 
-import { setSelectedPlayerId } from './player-stats.js';
 
 const playersGrid = document.getElementById('playersGrid');
 const playerDetailCard = document.getElementById('playerDetailCard');
@@ -88,8 +87,6 @@ function showPlayerDetail(player) {
   `;
   featuredGameEl.textContent = player.featuredGame;
 
-  // Set player ID for stats fetch
-  setSelectedPlayerId(player.id);
 }
 
 // ================= FILTER PLAYERS =================
