@@ -1,10 +1,11 @@
 import sqlite3
+import os
 from flask import Flask, render_template
 from db import close_db
 
-DATABASE = '../digdeep.db'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE = os.path.join(BASE_DIR, '..', 'digdeep.db')
 
-# Use '../frontend' to jump out of 'backend' and into 'frontend'
 app = Flask(__name__, 
             template_folder='../frontend/html', 
             static_folder='../frontend',
@@ -13,8 +14,6 @@ app = Flask(__name__,
 def init_db():
     db = sqlite3.connect(DATABASE)
     db.execute("PRAGMA foreign_keys = ON")
-    # Using 'database/schema.sql' assuming you run from the DIGDEEP root
-    # or keep it as is if 'database' is truly one level up from app.py
     try:
         with open('../database/schema.sql') as f:
             db.executescript(f.read())
@@ -24,10 +23,57 @@ def init_db():
     db.commit()
     db.close()
 
+# Coach pages
+@app.route('/coach-dashboard')
+def coach_dashboard_page():
+    return render_template('coach/coach-dashboard.html')
+
+@app.route('/coach-permissions')
+def coach_permissions_page():
+    return render_template('shared/coach-permissions.html')
+
+@app.route('/manage-games')
+def manage_games_page():
+    return render_template('coach/manage-games.html')
+
+@app.route('/manage-players')
+def manage_players_page():
+    return render_template('coach/manage-players.html')
+
+# Player pages
+@app.route('/player-dashboard')
+def player_dashboard_page():
+    return render_template('player/player-dashboard.html')
+
+@app.route('/player-permissions')
+def player_permissions_page():
+    return render_template('shared/player-permissions.html')
+
+@app.route('/player-stats')
+def player_stats_page():
+    return render_template('player/player-stats.html')
+
+# Shared pages
+@app.route('/')
+@app.route('/index')
+def index_page():
+    return render_template('shared/index.html')
+
+@app.route('/login')
+def login_page():
+    return render_template('shared/login.html')
+
+@app.route('/signup')
+def signup_page():
+    return render_template('shared/signup.html')
+
 @app.route('/team-stats')
 def team_stats_page():
-    # Since 'shared' is inside 'html', and html is the template_folder:
     return render_template('shared/team-stats.html')
+
+@app.route('/account-settings')
+def account_settings_page():
+    return render_template('shared/account-settings.html')
 
 app.teardown_appcontext(close_db)
 
