@@ -5,9 +5,11 @@ Imported by app.py and all route files to avoid circular imports.
 """
 
 import sqlite3
+import os
 from flask import g
 
-DATABASE = 'digdeep.db'
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DATABASE = os.path.join(BASE_DIR, '..', 'digdeep.db')
 
 def get_db():
     """
