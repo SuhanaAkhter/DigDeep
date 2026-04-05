@@ -2,7 +2,7 @@
 :root {
     --bg-cream: #F5EBD7;
     --pill-pink: #E5B7B7;
-    --card-pink: #D9AEAE; /* Muted pink for game cards */
+    --card-pink: #D9AEAE;
     --text-brown: #6B5B4E;
     --white: #FFFFFF;
     --dropdown-tan: #D6C2A7;
@@ -19,15 +19,17 @@ body {
 .nav-pill-container {
     background-color: var(--pill-pink);
     border-radius: 50px;
-    padding: 8px 30px;
-    margin-top: 20px;
+    padding: 10px 40px;
+    margin-top: 30px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    width: 100%;
 }
 
 .nav-item-custom {
-    position: relative; /* REQUIRED for absolute children to align here */
+    position: relative;
     background-color: var(--white);
     border-radius: 12px;
     padding: 4px 18px;
@@ -35,7 +37,7 @@ body {
     margin-right: 12px;
     cursor: pointer;
     border: none;
-    display: inline-block; /* Helps with spacing */
+    display: inline-block;
 }
 
 .role-tag {
@@ -44,29 +46,15 @@ body {
     margin-right: 10px;
 }
 
-/* Navbar Container */
-.nav-pill-container {
-    background-color: var(--pill-pink);
-    border-radius: 50px;
-    padding: 10px 40px;
-    margin-top: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-}
-
-/*Dropdowns */
-
-
+/* Dropdowns */
 .dropdown-menu-custom {
     display: none;
     position: absolute;
-    top: 100%; /* Positions it exactly at the bottom edge of the nav item */
+    top: 100%;
     left: 0;
     background-color: var(--dropdown-tan);
     border-radius: 0 0 15px 15px;
-    min-width: 160px; /* Give it a bit more width than the button */
+    min-width: 160px;
     padding: 10px;
     z-index: 1000;
     box-shadow: 0 4px 10px rgba(0,0,0,0.1);
@@ -95,10 +83,11 @@ body {
 
 /* Profile Section */
 .profile-group {
-    margin-top: 10vh;
+    margin-top: 5vh;
     display: flex;
     align-items: center;
-    gap: 20px;
+    gap: 25px;
+    padding-left: 40px;
 }
 
 .profile-circle {
@@ -136,32 +125,13 @@ body {
     line-height: 1;
 }
 
-/* Update the main container padding */
+/* Layout */
 .container-fluid.px-5 {
-    padding-left: 5% !important; /* Pushes everything from the left edge */
-    padding-right: 5% !important; /* Keeps the sidebar from hitting the right edge */
+    padding-left: 5% !important;
+    padding-right: 5% !important;
 }
 
-/* Adjust the welcome message spacing */
 .welcome-section {
     margin-top: 15vh;
-    padding-left: 20px; /* Slight extra nudge for the 'staircase' effect */
-}
-
-/* Update the profile group to align with the text above it */
-.profile-group {
-    margin-top: 5vh;
-    display: flex;
-    align-items: center;
-    gap: 25px;
-    padding-left: 40px; /* Pushes the profile circle further in than the 'hey' */
-}
-
-/* Ensure the Navbar stays full-width within its container */
-.nav-pill-container {
-    background-color: var(--pill-pink);
-    border-radius: 50px;
-    padding: 10px 40px;
-    margin-top: 30px;
-    width: 100%; /* Keeps it from shifting */
+    padding-left: 20px;
 }
