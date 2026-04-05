@@ -1,5 +1,6 @@
 /* Layout */
 .page-header-text { font-weight: 900; color: var(--text-brown); line-height: 0.9; }
+
 .games-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -17,52 +18,207 @@
     font-weight: bold;
     min-height: 150px;
     cursor: pointer;
+    position: relative;
+    transition: opacity 0.15s ease;
 }
-.game-box.pink { background-color: #D9AEAE; }
+.game-box:hover { opacity: 0.9; }
+.game-box.pink  { background-color: #D9AEAE; }
 .game-box.olive { background-color: #929375; }
 .game-box.brown { background-color: #B0947B; }
-.game-box.add-btn { 
-    background-color: transparent; 
-    border: 5px solid #E2D9C5; 
+.game-box.add-btn {
+    background-color: transparent;
+    border: 5px solid #E2D9C5;
     color: #B0947B;
     font-size: 5rem;
     display: flex;
     align-items: center;
     justify-content: center;
 }
+.game-box.add-btn:hover { background-color: rgba(0,0,0,0.03); }
+
+.game-box-title { font-size: 1rem; margin-bottom: 6px; }
+.game-box-score { font-size: 2.5rem; font-weight: 900; line-height: 1; }
+
+/* Context Menu */
+.context-menu {
+    display: none;
+    position: fixed;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    z-index: 2000;
+    overflow: hidden;
+    min-width: 140px;
+}
+.context-item {
+    padding: 10px 18px;
+    cursor: pointer;
+    font-weight: 600;
+    color: var(--text-brown);
+    font-size: 0.9rem;
+}
+.context-item:hover { background-color: #f5ebe0; }
+.context-item.danger { color: #a05050; }
+.context-item.danger:hover { background-color: #fdf0f0; }
 
 /* Modal Core */
 .custom-modal {
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
     background: rgba(0,0,0,0.3);
-    display: none; /* Toggled by JS */
+    display: none;
     justify-content: center;
     align-items: center;
     z-index: 1000;
 }
 
-.modal-content-large { background: #5E5245; width: 800px; border-radius: 40px; padding: 40px; color: #F5EBD7; position: relative;}
-.modal-content-small { background: #F5EBD7; width: 500px; border-radius: 30px; border: 8px solid #5E5245; padding: 30px; }
-.modal-content-alert { background: #F5EBD7; width: 350px; border-radius: 20px; border: 6px solid #D9AEAE; }
-
-/* Header Elements */
-.modal-header-custom { display: flex; justify-content: space-between; font-weight: 900; font-size: 1.5rem; margin-bottom: 20px; }
-.text-pink { color: #D9AEAE; }
-.close-modal { background: white; border-radius: 50%; border: none; width: 30px; height: 30px; font-weight: bold; }
-
-/* View/Edit Components */
-.set-score-box { background: #B0947B; padding: 15px; border-radius: 15px; text-align: center; font-weight: 900; }
-.set-score-box.active { background: #D9AEAE; border: 4px solid white; }
-.stat-mini-card { border-radius: 15px; padding: 10px; text-align: center; font-weight: 900; }
-
-.edit-stat-col { flex: 1; border-radius: 15px; padding: 10px; font-weight: 900; font-size: 0.8rem; min-height: 150px; }
-.save-btn-floating { 
-    position: absolute; bottom: 20px; right: 40px; 
-    background: #5E5245; color: white; border-radius: 20px; 
-    padding: 5px 20px; border: 2px solid white; font-weight: bold;
+.modal-content-large {
+    background: #5E5245;
+    width: 800px;
+    border-radius: 40px;
+    padding: 40px;
+    color: #F5EBD7;
+    position: relative;
+}
+.modal-content-small {
+    background: #F5EBD7;
+    width: 500px;
+    border-radius: 30px;
+    border: 8px solid #5E5245;
+    padding: 30px;
+    position: relative;
+}
+.modal-content-alert {
+    background: #F5EBD7;
+    width: 350px;
+    border-radius: 20px;
+    border: 6px solid #D9AEAE;
 }
 
-/* Alert Box */
-.modal-header-alert { background: #D9AEAE; color: white; padding: 5px 15px; display: flex; justify-content: space-between; }
-.alert-btn { background: #B0947B; color: white; border: none; padding: 5px 20px; border-radius: 10px; font-weight: bold; }
+/* Modal Header */
+.modal-header-custom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 900;
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+}
+.text-pink { color: #D9AEAE; }
+.close-modal {
+    background: white;
+    border-radius: 50%;
+    border: none;
+    width: 30px;
+    height: 30px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.close-modal-sm {
+    background: none;
+    border: none;
+    font-weight: bold;
+    font-size: 1rem;
+    cursor: pointer;
+}
+
+/* Set Score Sidebar */
+.set-score-box {
+    background: #B0947B;
+    padding: 15px;
+    border-radius: 15px;
+    text-align: center;
+    font-weight: 900;
+    margin-bottom: 10px;
+    cursor: pointer;
+    color: white;
+}
+.set-score-box.active {
+    background: #D9AEAE;
+    border: 4px solid white;
+}
+
+/* Stat Cards */
+.stat-mini-card {
+    border-radius: 15px;
+    padding: 20px 10px;
+    text-align: center;
+    font-weight: 900;
+    font-size: 1rem;
+    color: white;
+}
+.stat-mini-card.olive  { background-color: #929375; }
+.stat-mini-card.pink   { background-color: #D9AEAE; }
+.stat-mini-card.brown  { background-color: #B0947B; }
+
+.featured-player-tag {
+    font-weight: 900;
+    font-size: 1rem;
+    color: #F5EBD7;
+}
+
+.heatmap-link {
+    color: #F5EBD7;
+    font-size: 0.85rem;
+    text-decoration: underline;
+}
+
+/* Add Game Modal */
+.add-game-preview {
+    color: #D9AEAE;
+    font-weight: 900;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+}
+.lorem-input {
+    border: 2px solid #5E5245;
+    border-radius: 10px;
+    padding: 6px 12px;
+    font-family: inherit;
+    color: var(--text-brown);
+    background: white;
+}
+
+/* Save Button */
+.save-btn-floating {
+    position: absolute;
+    bottom: 20px;
+    right: 40px;
+    background: #5E5245;
+    color: white;
+    border-radius: 20px;
+    padding: 5px 20px;
+    border: 2px solid white;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Alert Modal */
+.modal-header-alert {
+    background: #D9AEAE;
+    color: white;
+    padding: 5px 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 14px 14px 0 0;
+}
+.alert-btn {
+    background: #B0947B;
+    color: white;
+    border: none;
+    padding: 5px 20px;
+    border-radius: 10px;
+    font-weight: bold;
+    cursor: pointer;
+}
+.modal-body-alert { padding: 20px; color: var(--text-brown); }
+
+.stat-input {
+    width: 55px;
+    border-radius: 8px;
+    border: none;
+    text-align: center;
+    padding: 4px;
+    font-family: inherit;
+}

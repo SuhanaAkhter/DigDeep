@@ -3,59 +3,32 @@
 <head>
   <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link rel="stylesheet" href="../../css/dashboard.css">
-  <link rel="stylesheet" href="../../css/game-stats.css">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/game-stats.css">
   <title>Season Games | Dig Deep</title>
 </head>
 
 <body>
   <div class="container-fluid px-5">
 
-    <!-- NAVBAR -->
-    <nav class="nav-pill-container">
-      <div class="d-flex align-items-center">
-        <div class="nav-item-custom">
-          <a href="coach-dashboard" class="navbar-link">dashboard</a>
-        </div>
-        <div class="nav-item-custom">
-          my team ▾
-          <div class="dropdown-menu-custom">
-            <a href="manage-players" class="dropdown-item-custom">players</a>
-            <a href="manage-games" class="dropdown-item-custom">games</a>
-            <a href="team-stats" class="dropdown-item-custom">stats</a>
-          </div>
-        </div>
-        <div class="nav-item-custom">
-          <a href="permissions" class="navbar-link">permissions</a>
-        </div>
-      </div>
-      <div class="d-flex align-items-center">
-        <div class="nav-item-custom">
-          <a href="account-settings" class="navbar-link">settings</a>
-        </div>
-        <span class="role-tag">coach</span>
-      </div>
-    </nav>
+    {% include 'shared/navbar.html' %}
 
-    <!-- MAIN CONTENT -->
     <div class="row mt-4">
       <div class="col-md-3">
         <h1 class="page-header-text">this season's<br>GAMES</h1>
         <div class="featured-sidebar mt-4">
           <h2 class="sidebar-title">featured games</h2>
-          <!-- Filled dynamically -->
           <div id="featuredGamesList"></div>
         </div>
       </div>
 
       <div class="col-md-9">
-        <!-- Games filled dynamically by game-stats.js -->
         <div class="games-grid" id="gamesGrid"></div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== ADD GAME MODAL ==================== -->
+  <!-- ADD GAME MODAL -->
   <div id="addGameModal" class="custom-modal">
     <div class="modal-content-small">
       <div class="modal-header-custom">
@@ -63,7 +36,7 @@
         <button class="close-modal" id="closeAddModal">✖</button>
       </div>
       <div class="modal-body-custom">
-        <h2>MHS VS.....</h2>
+        <h2 class="add-game-preview">MHS VS <span id="opponentPreview">.....</span></h2>
         <div class="d-flex align-items-center gap-2 mb-4">
           <label>opposing school:</label>
           <input type="text" id="newOpponentInput" class="lorem-input" placeholder="school name">
@@ -73,7 +46,7 @@
     </div>
   </div>
 
-  <!-- ==================== VIEW GAME MODAL ==================== -->
+  <!-- VIEW GAME MODAL -->
   <div id="viewGameModal" class="custom-modal">
     <div class="modal-content-large">
       <div class="modal-header-custom">
@@ -84,6 +57,9 @@
         </div>
       </div>
       <div class="modal-body-custom row">
+        <!-- Set scores sidebar -->
+        <div class="col-4" id="setSidebar" style="overflow-y:auto; max-height:300px;"></div>
+        <!-- Stats -->
         <div class="col-8">
           <div class="row g-2">
             <div class="col-4"><div class="stat-mini-card olive" id="viewKills">kills<br>—</div></div>
@@ -91,26 +67,26 @@
             <div class="col-4"><div class="stat-mini-card brown" id="viewBlocks">blocks<br>—</div></div>
           </div>
           <div class="featured-player-tag mt-4" id="viewFeatured">featured player: —</div>
+          <div class="mt-2">
+            <a href="#" class="heatmap-link" id="viewHeatmapLink">view court heatmap</a>
+          </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ==================== EDIT GAME MODAL ==================== -->
+  <!-- EDIT GAME MODAL -->
   <div id="editGameModal" class="custom-modal">
     <div class="modal-content-large">
       <div class="modal-header-custom">
         <span class="text-uppercase">MHS VS <span id="editOpponent" class="text-pink"></span></span>
-        <div class="d-flex align-items-center gap-3">
-          <button class="close-modal" id="closeEditModal">✖</button>
-        </div>
+        <button class="close-modal" id="closeEditModal">✖</button>
       </div>
-      <!-- Filled dynamically by game-stats.js -->
       <div class="modal-body-custom" id="editModalBody"></div>
     </div>
   </div>
 
-  <!-- ==================== DELETE CONFIRM MODAL ==================== -->
+  <!-- DELETE CONFIRM MODAL -->
   <div id="deleteConfirmModal" class="custom-modal">
     <div class="modal-content-alert">
       <div class="modal-header-alert">
@@ -118,7 +94,7 @@
         <button class="close-modal-sm" id="closeDeleteModal">✖</button>
       </div>
       <div class="modal-body-alert text-center p-3">
-        <p>Are you sure? This will delete all stats for this game too.</p>
+        <p>are you sure? this will delete all stats for this game too.</p>
         <div class="d-flex justify-content-center gap-3">
           <button class="alert-btn" id="confirmDeleteBtn">yes, delete</button>
           <button class="alert-btn" id="cancelDeleteBtn">no, go back</button>
@@ -127,6 +103,14 @@
     </div>
   </div>
 
-  <script src="../../js/game-stats.js"></script>
+  <!-- CONTEXT MENU -->
+  <div id="gameContextMenu" class="context-menu">
+    <div class="context-item" id="ctxViewStats">view stats</div>
+    <div class="context-item" id="ctxEditGame">edit game</div>
+    <div class="context-item danger" id="ctxDeleteGame">delete game</div>
+  </div>
+
+  <script src="/js/navbar.js"></script>
+  <script src="/js/game-stats.js"></script>
 </body>
 </html>
