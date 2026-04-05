@@ -2,9 +2,12 @@ import sqlite3
 import os
 from flask import Flask, render_template, session
 from db import close_db
+from flask import redirect, url_for
+
+from routes.auth_routes import auth_bp
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE = os.path.join(BASE_DIR, '..', 'digdeep.db')
+DATABASE = os.path.join(BASE_DIR, '..', 'digdeep.db')\
 
 app = Flask(__name__, 
             template_folder='../frontend/html', 
@@ -12,6 +15,8 @@ app = Flask(__name__,
             static_url_path='')
 
 app.secret_key = 'dev-secret-key'  # change this before going to production
+
+app.register_blueprint(auth_bp)
 
 def init_db():
     db = sqlite3.connect(DATABASE)
@@ -30,9 +35,13 @@ def init_db():
 def coach_dashboard_page():
     return render_template('coach/coach-dashboard.html', role=session.get('role', 'coach'))
 
-@app.route('/coach-permissions')
-def coach_permissions_page():
-    return render_template('shared/coach-permissions.html', role=session.get('role', 'coach'))
+@app.route('/permissions')
+def permissions_page():
+    role = session.get('role', 'player')
+    if role == 'coach':
+        return render_template('coach/coach-permissions.html', role=role)
+    else:
+        return render_template('player/player-permissions.html', role=role)
 
 @app.route('/manage-games')
 def manage_games_page():
@@ -46,10 +55,6 @@ def manage_players_page():
 @app.route('/player-dashboard')
 def player_dashboard_page():
     return render_template('player/player-dashboard.html', role=session.get('role', 'player'))
-
-@app.route('/player-permissions')
-def player_permissions_page():
-    return render_template('shared/player-permissions.html', role=session.get('role', 'player'))
 
 @app.route('/player-stats')
 def player_stats_page():

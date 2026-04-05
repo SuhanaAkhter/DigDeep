@@ -2,64 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Permissions</title>
-  <link rel="stylesheet" href="../../css/permissions.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/permissions.css">
+  <title>Permissions | Dig Deep</title>
 </head>
 <body>
+  <div class="container-fluid px-5">
+    {% include 'shared/navbar.html' %}
 
-  <div class="container">
-    <!-- NAVBAR -->
-    <nav class="nav-pill-container">
-      <div class="d-flex align-items-center">
-        <div class="nav-item-custom">
-          <a href="coach-dashboard" class="navbar-link">dashboard</a>
-        </div>
-        <div class="nav-item-custom">
-          my team ▾
-          <div class="dropdown-menu-custom">
-            <a href="manage-players" class="dropdown-item-custom">players</a>
-            <a href="manage-games" class="dropdown-item-custom">games</a>
-            <a href="team-stats" class="dropdown-item-custom">stats</a>
-          </div>
-        </div>
-        <div class="nav-item-custom">
-          <a href="permissions" class="navbar-link">permissions</a>
-        </div>
-      </div>
-      <div class="d-flex align-items-center">
-        <div class="nav-item-custom">
-          <a href="account-settings" class="navbar-link">settings</a>
-        </div>
-        <span class="role-tag">coach</span>
-      </div>
-    </nav>
+    <h1 class="permissions-title">permissions</h1>
 
-    <!-- Title -->
-    <h1 class="title">permissions</h1>
-
-    <!-- Card -->
-    <div class="card">
-      
-      <!-- Toggle 1 -->
-      <div class="toggle-row">
-        <label class="switch">
-          <input type="checkbox">
-          <span class="slider"></span>
-        </label>
-        <span class="label-text">allow players to view full team stats</span>
-      </div>
-
-      <!-- Toggle 2 -->
-      <div class="toggle-row">
-        <label class="switch">
+    <div class="permissions-card">
+      <div class="permission-row">
+        <label class="toggle-switch">
           <input type="checkbox" checked>
-          <span class="slider"></span>
+          <span class="toggle-slider"></span>
         </label>
-        <span class="label-text">allow players to view their own stats</span>
+        allow players to view full team stats
       </div>
-
     </div>
   </div>
 
+  <script src="/js/navbar.js"></script>
 </body>
 </html>
