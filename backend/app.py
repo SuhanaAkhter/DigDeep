@@ -5,6 +5,7 @@ from db import close_db
 from flask import redirect, url_for
 
 from routes.auth_routes import auth_bp
+from flask_mail import Mail
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATABASE = os.path.join(BASE_DIR, '..', 'digdeep.db')\
@@ -30,6 +31,14 @@ def init_db():
     db.commit()
     db.close()
 
+app.config['MAIL_SERVER']   = 'smtp.gmail.com'
+app.config['MAIL_PORT']     = 587
+app.config['MAIL_USE_TLS']  = True
+app.config['MAIL_USERNAME'] = 'digdeep.noreply@gmail.com'
+app.config['MAIL_PASSWORD'] = 'ecgc ettz zwmb mkkj'
+
+mail = Mail(app)
+
 # Coach pages
 @app.route('/coach-dashboard')
 def coach_dashboard_page():
@@ -42,6 +51,10 @@ def permissions_page():
         return render_template('coach/coach-permissions.html', role=role)
     else:
         return render_template('player/player-permissions.html', role=role)
+
+@app.route('/reset-password')
+def reset_password_page():
+    return render_template('shared/reset-password.html')
 
 @app.route('/manage-games')
 def manage_games_page():
