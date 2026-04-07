@@ -39,6 +39,12 @@ CREATE TABLE IF NOT EXISTS players (
     FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
 );
 
+CREATE TABLE IF NOT EXISTS password_reset_codes (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    email TEXT NOT NULL UNIQUE,
+    code TEXT NOT NULL,
+    expires_at INTEGER NOT NULL
+);
 --------------------------------
 -- GAMES 
 --------------------------------

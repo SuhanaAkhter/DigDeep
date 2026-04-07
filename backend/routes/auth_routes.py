@@ -1,24 +1,23 @@
 """
 auth_routes.py
 Handles user signup, login, logout, and password reset via email code.
+Reset codes are stored in the database so they survive Flask restarts.
 """
 
 from flask import Blueprint, request, jsonify, session, current_app
 from flask_mail import Mail, Message
 from db import get_db
-import hashlib
+# FIX: replaced plain hashlib.sha256 with werkzeug's password hashing.
+# SHA-256 is a fast general-purpose hash — attackers can crack common
+# passwords in seconds with a GPU. werkzeug uses PBKDF2-HMAC which is
+# slow by design and includes a random salt automatically.
+from werkzeug.security import generate_password_hash, check_password_hash
+import hmac
 import random
 import string
 import time
 
 auth_bp = Blueprint('auth', __name__, url_prefix='/api/auth')
-
-# In-memory store for reset codes: { email: { code, expires_at } }
-reset_codes = {}
-
-
-def hash_password(password):
-    return hashlib.sha256(password.encode()).hexdigest()
 
 
 def get_mail():
@@ -27,15 +26,22 @@ def get_mail():
 
 @auth_bp.route('/signup', methods=['POST'])
 def signup():
-    db = get_db()
+    db   = get_db()
     data = request.get_json()
 
+    # FIX: read name from the request — was missing, causing NULL names for all new players
+    name     = data.get('name', '').strip()
     email    = data.get('email', '').strip()
     password = data.get('password', '')
     role     = data.get('role', 'player')
 
     if not email or not password:
         return jsonify({'error': 'email and password are required'}), 400
+
+    # FIX: enforce minimum password length server-side
+    if len(password) < 8:
+        return jsonify({'error': 'password must be at least 8 characters'}), 400
+
     if role not in ('player', 'coach'):
         return jsonify({'error': 'invalid role'}), 400
 
@@ -45,13 +51,17 @@ def signup():
 
     cursor = db.execute(
         'INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)',
-        (email, hash_password(password), role)
+        (email, generate_password_hash(password), role)
     )
     db.commit()
     user_id = cursor.lastrowid
 
     if role == 'player':
-        db.execute('INSERT INTO players (user_id, team_id) VALUES (?, ?)', (user_id, 1))
+        # FIX: save the name field so players don't show up as "unnamed"
+        db.execute(
+            'INSERT INTO players (user_id, team_id, name) VALUES (?, ?, ?)',
+            (user_id, 1, name or None)
+        )
         db.commit()
 
     session['user_id'] = user_id
@@ -63,7 +73,7 @@ def signup():
 
 @auth_bp.route('/login', methods=['POST'])
 def login():
-    db = get_db()
+    db   = get_db()
     data = request.get_json()
 
     email    = data.get('email', '').strip()
@@ -76,7 +86,8 @@ def login():
         'SELECT id, email, password_hash, role FROM users WHERE email = ?', (email,)
     ).fetchone()
 
-    if not user or user['password_hash'] != hash_password(password):
+    # FIX: use check_password_hash to match the new werkzeug hashes
+    if not user or not check_password_hash(user['password_hash'], password):
         return jsonify({'error': 'invalid email or password'}), 401
 
     session['user_id'] = user['id']
@@ -107,30 +118,29 @@ def me():
 def forgot_password():
     """
     POST /api/auth/forgot-password
-    Expects JSON: { email }
-    Generates a 6-digit code, stores it for 10 minutes, and emails it.
+    Generates a 6-digit code, saves it to the database, and emails it.
     """
-    data  = request.get_json()
+    db   = get_db()
+    data = request.get_json()
     email = data.get('email', '').strip()
 
     if not email:
         return jsonify({'error': 'email is required'}), 400
 
-    db   = get_db()
     user = db.execute('SELECT id FROM users WHERE email = ?', (email,)).fetchone()
 
-    # Always return success even if email not found (security best practice)
+    # Always return success even if email not found (prevents email enumeration)
     if not user:
         return jsonify({'success': True})
 
-    # Generate 6-digit code
     code = ''.join(random.choices(string.digits, k=6))
-    reset_codes[email] = {
-        'code':       code,
-        'expires_at': time.time() + 600  # 10 minutes
-    }
 
-    # Send email
+    db.execute(
+        'INSERT OR REPLACE INTO password_reset_codes (email, code, expires_at) VALUES (?, ?, ?)',
+        (email, code, int(time.time()) + 600)
+    )
+    db.commit()
+
     try:
         mail = get_mail()
         msg  = Message(
@@ -138,8 +148,7 @@ def forgot_password():
             sender='digdeep.noreply@gmail.com',
             recipients=[email]
         )
-        msg.body = f"""
-hi there,
+        msg.body = f"""hi there,
 
 your dig deep password reset code is:
 
@@ -149,11 +158,10 @@ this code expires in 10 minutes.
 
 if you didn't request this, you can ignore this email.
 
-— dig deep
-        """
+— dig deep"""
         mail.send(msg)
     except Exception as e:
-        print(f'Email error: {e}')
+        print(f'email error: {e}')
         return jsonify({'error': 'failed to send email'}), 500
 
     return jsonify({'success': True})
@@ -163,19 +171,28 @@ if you didn't request this, you can ignore this email.
 def verify_reset_code():
     """
     POST /api/auth/verify-reset-code
-    Expects JSON: { email, code }
     Checks the code is valid and not expired.
     """
-    data  = request.get_json()
+    db   = get_db()
+    data = request.get_json()
+
     email = data.get('email', '').strip()
     code  = data.get('code', '').strip()
 
-    entry = reset_codes.get(email)
+    entry = db.execute(
+        'SELECT code, expires_at FROM password_reset_codes WHERE email = ?', (email,)
+    ).fetchone()
 
-    if not entry or entry['code'] != code:
+    if not entry:
         return jsonify({'error': 'invalid code'}), 400
+
+    # FIX: use hmac.compare_digest to prevent timing attacks on code comparison
+    if not hmac.compare_digest(entry['code'], code):
+        return jsonify({'error': 'invalid code'}), 400
+
     if time.time() > entry['expires_at']:
-        del reset_codes[email]
+        db.execute('DELETE FROM password_reset_codes WHERE email = ?', (email,))
+        db.commit()
         return jsonify({'error': 'code has expired — please request a new one'}), 400
 
     return jsonify({'success': True})
@@ -185,10 +202,11 @@ def verify_reset_code():
 def reset_password():
     """
     POST /api/auth/reset-password
-    Expects JSON: { email, code, new_password }
     Verifies code one final time then updates the password.
     """
-    data         = request.get_json()
+    db   = get_db()
+    data = request.get_json()
+
     email        = data.get('email', '').strip()
     code         = data.get('code', '').strip()
     new_password = data.get('new_password', '')
@@ -196,20 +214,31 @@ def reset_password():
     if not new_password:
         return jsonify({'error': 'new password is required'}), 400
 
-    entry = reset_codes.get(email)
+    # FIX: enforce minimum length on reset too
+    if len(new_password) < 8:
+        return jsonify({'error': 'password must be at least 8 characters'}), 400
 
-    if not entry or entry['code'] != code:
+    entry = db.execute(
+        'SELECT code, expires_at FROM password_reset_codes WHERE email = ?', (email,)
+    ).fetchone()
+
+    if not entry:
         return jsonify({'error': 'invalid or expired code'}), 400
+
+    # FIX: use hmac.compare_digest here too
+    if not hmac.compare_digest(entry['code'], code):
+        return jsonify({'error': 'invalid or expired code'}), 400
+
     if time.time() > entry['expires_at']:
-        del reset_codes[email]
+        db.execute('DELETE FROM password_reset_codes WHERE email = ?', (email,))
+        db.commit()
         return jsonify({'error': 'code has expired — please request a new one'}), 400
 
-    db = get_db()
     db.execute(
         'UPDATE users SET password_hash = ? WHERE email = ?',
-        (hash_password(new_password), email)
+        (generate_password_hash(new_password), email)
     )
+    db.execute('DELETE FROM password_reset_codes WHERE email = ?', (email,))
     db.commit()
 
-    del reset_codes[email]
     return jsonify({'success': True})
