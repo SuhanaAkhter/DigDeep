@@ -8,7 +8,8 @@ from routes.auth_routes import auth_bp
 from flask_mail import Mail
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATABASE = os.path.join(BASE_DIR, '..', 'digdeep.db')\
+DATABASE = os.path.join(BASE_DIR, '..', 'digdeep.db')
+
 
 app = Flask(__name__, 
             template_folder='../frontend/html', 
@@ -16,8 +17,10 @@ app = Flask(__name__,
             static_url_path='')
 
 app.secret_key = 'dev-secret-key'  # change this before going to production
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disable static file caching in dev
 
 app.register_blueprint(auth_bp)
+app.config['MAIL_TIMEOUT'] = 5
 
 def init_db():
     db = sqlite3.connect(DATABASE)
