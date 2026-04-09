@@ -8,26 +8,10 @@
 </head>
 <body>
   <div class="container-fluid px-5">
-    <nav class="nav-pill-container">
-      <div class="d-flex align-items-center">
-        <div class="nav-item-custom"><a href="player-dashboard" class="navbar-link">dashboard</a></div>
-        <div class="nav-item-custom">
-          my team ▾
-          <div class="dropdown-menu-custom">
-            <a href="player-stats" class="dropdown-item-custom">your stats</a>
-            <a href="team-stats" class="dropdown-item-custom">team stats</a>
-          </div>
-        </div>
-        <div class="nav-item-custom"><a href="permissions" class="navbar-link">permissions</a></div>
-      </div>
-      <div class="d-flex align-items-center">
-        <div class="nav-item-custom">
-          <a href="account-settings" class="navbar-link">settings</a>
-        </div>
-        <span class="role-tag">player</span>
-      </div>
-    </nav>
+    <!-- ================== NAVIGATION ================== -->
+    {% include 'shared/navbar.html' %}
 
+    <!-- ================== MAIN CONTENT ================== -->
     <div class="row mt-5">
       <div class="col-md-7">
         <h1 class="stats-header">ori's season stats</h1>

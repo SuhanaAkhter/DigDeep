@@ -8,31 +8,11 @@
 </head>
 <body>
   <div class="container-fluid px-5">
-    <nav class="nav-pill-container">
-      <div class="d-flex align-items-center">
-        <div class="nav-item-custom"><a href="coach-dashboard" class="navbar-link">dashboard</a></div>
-        <div class="nav-item-custom">
-          my team ▾
-          <div class="dropdown-menu-custom">
-            <a href="manage-players" class="dropdown-item-custom">players</a>
-            <a href="manage-games" class="dropdown-item-custom">games</a>
-            <a href="team-stats" class="dropdown-item-custom">stats</a>
-          </div>
-        </div>
-        
-        <div class="nav-item-custom">
-          <a href="permissions" class="navbar-link">permissions</a>
-        </div>
-      </div>
 
-      <div class="d-flex align-items-center">
-        <div class="nav-item-custom">
-          <a href="account-settings" class="navbar-link">settings</a>
-        </div>
-        <span class="role-tag">coach</span>
-      </div>
-    </nav>
+    <!-- ================== NAVIGATION ================== -->
+    {% include 'shared/navbar.html' %}
 
+    <!-- ================== MAIN CONTENT ================== -->
     <div class="row">
       <div class="col-md-7">
         <div style="margin-top: 15vh;">
