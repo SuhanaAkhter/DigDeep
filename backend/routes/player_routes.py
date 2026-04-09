@@ -12,11 +12,89 @@ from models.player_model import (
     get_player_by_user_id,
     update_player
 )
+import os
+from flask import Blueprint, request, jsonify, session
+from werkzeug.utils import secure_filename
+from db import get_db
 
 player_bp = Blueprint('player', __name__, url_prefix='/api/players')
 
 TEAM_ID = 1
-
+ 
+UPLOAD_FOLDER   = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend', 'assets', 'uploads')
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
+ 
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+ 
+ 
+# Add to your existing player_bp:
+ 
+@player_bp.route('/api/player/me', methods=['GET'])
+def player_me():
+    if 'user_id' not in session:
+        return jsonify({'error': 'not logged in'}), 401
+ 
+    db     = get_db()
+    player = db.execute(
+        'SELECT name, picture FROM players WHERE user_id = ?', (session['user_id'],)
+    ).fetchone()
+ 
+    if not player:
+        return jsonify({'error': 'player not found'}), 404
+ 
+    return jsonify({'name': player['name'], 'picture': player['picture']})
+ 
+ 
+@player_bp.route('/api/player/update-name', methods=['POST'])
+def update_player_name():
+    if 'user_id' not in session:
+        return jsonify({'error': 'not logged in'}), 401
+ 
+    db   = get_db()
+    data = request.get_json()
+    name = data.get('name', '').strip()
+ 
+    if not name:
+        return jsonify({'error': 'name is required'}), 400
+ 
+    db.execute(
+        'UPDATE players SET name = ? WHERE user_id = ?',
+        (name, session['user_id'])
+    )
+    db.commit()
+ 
+    return jsonify({'success': True})
+ 
+ 
+@player_bp.route('/api/player/upload-picture', methods=['POST'])
+def upload_player_picture():
+    if 'user_id' not in session:
+        return jsonify({'error': 'not logged in'}), 401
+ 
+    if 'picture' not in request.files:
+        return jsonify({'error': 'no file uploaded'}), 400
+ 
+    file = request.files['picture']
+    if file.filename == '' or not allowed_file(file.filename):
+        return jsonify({'error': 'invalid file type'}), 400
+ 
+    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+ 
+    filename = f"user_{session['user_id']}_{secure_filename(file.filename)}"
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    file.save(filepath)
+ 
+    picture_url = f"/assets/uploads/{filename}"
+ 
+    db = get_db()
+    db.execute(
+        'UPDATE players SET picture = ? WHERE user_id = ?',
+        (picture_url, session['user_id'])
+    )
+    db.commit()
+ 
+    return jsonify({'success': True, 'picture_url': picture_url})
 
 @player_bp.route('/', methods=['GET'])
 def list_players():

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DigDeep | Account Settings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="/css/dashboard.css">
+  <link rel="stylesheet" href="/css/account-settings.css">
+</head>
+<body>
+  <div class="container-fluid px-5">
+
+    {% include 'shared/navbar.html' %}
+
+    <div class="row mt-5">
+      <div class="col-md-5">
+
+        <!-- Account Card -->
+        <div class="settings-card">
+          <h2 class="settings-title">account information</h2>
+
+          <div class="d-flex align-items-start gap-4 mt-3">
+
+            <!-- Profile Picture -->
+            <div class="profile-pic-wrapper">
+              <div class="profile-pic-circle" id="profilePicDisplay">
+                <img id="profilePicImg" src="" alt="" style="display:none;">
+                <div id="profilePicUploadIcon">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#E5B7B7" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M12 8v4M12 12l-2 2M12 12l2 2"/>
+                    <path d="M8 16h8"/>
+                  </svg>
+                </div>
+              </div>
+              <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
+              <button class="pic-upload-btn" id="profilePicBtn">upload photo</button>
+              <div class="profile-name-display" id="displayName">your name</div>
+              <div class="profile-role-display" id="displayRole">—</div>
+            </div>
+
+            <!-- Info Fields -->
+            <div class="flex-grow-1">
+              <div class="info-row">
+                <span class="info-label">email:</span>
+                <span class="info-value" id="displayEmail">—</span>
+                <button class="edit-btn" data-field="email">edit</button>
+              </div>
+              <div class="info-row">
+                <span class="info-label">name:</span>
+                <span class="info-value" id="displayNameInline">—</span>
+                <button class="edit-btn" data-field="name">edit</button>
+              </div>
+              <div class="info-row">
+                <span class="info-label">password:</span>
+                <span class="info-value">••••••••</span>
+                <button class="edit-btn" data-field="password">edit</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Edit Modal -->
+  <div class="settings-modal-overlay" id="editModal" style="display:none;">
+    <div class="settings-modal">
+      <div class="settings-modal-header">
+        <span id="modalTitle">edit</span>
+        <button class="close-modal-sm" id="closeModal">✕</button>
+      </div>
+      <div class="settings-modal-body">
+        <div id="modalFields"></div>
+        <div class="modal-error" id="modalError"></div>
+        <button class="settings-save-btn" id="modalSave">save</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/account-settings.js"></script>
+</body>
+</html>

@@ -242,3 +242,63 @@ def reset_password():
     db.commit()
 
     return jsonify({'success': True})
+
+@auth_bp.route('/update-email', methods=['POST'])
+def update_email():
+    if 'user_id' not in session:
+        return jsonify({'error': 'not logged in'}), 401
+ 
+    db   = get_db()
+    data = request.get_json()
+    new_email = data.get('new_email', '').strip()
+ 
+    if not new_email:
+        return jsonify({'error': 'email is required'}), 400
+ 
+    existing = db.execute(
+        'SELECT id FROM users WHERE email = ? AND id != ?',
+        (new_email, session['user_id'])
+    ).fetchone()
+    if existing:
+        return jsonify({'error': 'that email is already in use'}), 409
+ 
+    db.execute(
+        'UPDATE users SET email = ? WHERE id = ?',
+        (new_email, session['user_id'])
+    )
+    db.commit()
+    session['email'] = new_email
+ 
+    return jsonify({'success': True})
+ 
+ 
+@auth_bp.route('/update-password', methods=['POST'])
+def update_password():
+    if 'user_id' not in session:
+        return jsonify({'error': 'not logged in'}), 401
+ 
+    db   = get_db()
+    data = request.get_json()
+    current_password = data.get('current_password', '')
+    new_password     = data.get('new_password', '')
+ 
+    if not current_password or not new_password:
+        return jsonify({'error': 'all fields are required'}), 400
+ 
+    if len(new_password) < 8:
+        return jsonify({'error': 'password must be at least 8 characters'}), 400
+ 
+    user = db.execute(
+        'SELECT password_hash FROM users WHERE id = ?', (session['user_id'],)
+    ).fetchone()
+ 
+    if not user or not check_password_hash(user['password_hash'], current_password):
+        return jsonify({'error': 'current password is incorrect'}), 401
+ 
+    db.execute(
+        'UPDATE users SET password_hash = ? WHERE id = ?',
+        (generate_password_hash(new_password), session['user_id'])
+    )
+    db.commit()
+ 
+    return jsonify({'success': True})
