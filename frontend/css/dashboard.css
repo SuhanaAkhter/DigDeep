@@ -135,3 +135,64 @@ body {
     margin-top: 15vh;
     padding-left: 20px;
 }
+
+
+/* ── Profile Picture Dropdown ── */
+.pfp-dropdown-wrapper {
+    position: relative;
+    display: inline-block;
+}
+
+.pfp-circle {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background-color: var(--card-pink);
+    cursor: pointer;
+    overflow: hidden;
+    border: 2px solid var(--white);
+    flex-shrink: 0;
+}
+
+.pfp-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pfp-dropdown-menu {
+    display: none;
+    position: absolute;
+    top: calc(100% + 6px);
+    right: 0;
+    background-color: var(--dropdown-tan);
+    border-radius: 0 0 15px 15px;
+    min-width: 160px;
+    padding: 8px;
+    z-index: 1000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.pfp-dropdown-wrapper:hover .pfp-dropdown-menu {
+    display: block;
+}
+
+.pfp-dropdown-item {
+    color: var(--white);
+    padding: 6px 10px;
+    display: block;
+    text-decoration: none;
+    font-weight: bold;
+    font-size: 0.95rem;
+    width: 100%;
+    text-align: left;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    text-transform: lowercase;
+}
+
+.pfp-dropdown-item:hover {
+    text-decoration: underline;
+}

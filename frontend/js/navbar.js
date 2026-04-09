@@ -7,6 +7,14 @@ document.addEventListener('DOMContentLoaded', () => {
   // Using a proper strip of the leading slash is more reliable.
   const currentPath = window.location.pathname.replace(/^\//, '');
 
+  const logoutBtn = document.getElementById('logoutBtn');
+  if (logoutBtn) {
+    logoutBtn.addEventListener('click', async () => {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      window.location.href = '/index';
+    });
+  }
+
   document.querySelectorAll('.navbar-link, .dropdown-item-custom').forEach(link => {
     const href = link.getAttribute('href');
     if (href && href === currentPath) {

@@ -22,6 +22,22 @@ app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0  # disable static file caching in de
 app.register_blueprint(auth_bp)
 app.config['MAIL_TIMEOUT'] = 5
 
+@app.context_processor
+def inject_user():
+    """Makes current_user_picture available in every template automatically."""
+    picture = None
+    if 'user_id' in session and session.get('role') == 'player':
+        from db import get_db
+        from models.player_model import get_player_by_user_id
+        try:
+            db = get_db()
+            player = get_player_by_user_id(db, session['user_id'])
+            if player:
+                picture = player.get('picture')
+        except Exception:
+            pass
+    return {'current_user_picture': picture}
+
 def init_db():
     db = sqlite3.connect(DATABASE)
     db.execute("PRAGMA foreign_keys = ON")

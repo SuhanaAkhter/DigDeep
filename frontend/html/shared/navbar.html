@@ -22,9 +22,19 @@
     {% endif %}
     <div class="nav-item-custom"><a href="permissions" class="navbar-link">permissions</a></div>
   </div>
-  <div class="d-flex align-items-center">
-    <div class="nav-item-custom"><a href="account-settings" class="navbar-link">settings</a></div>
+  <div class="d-flex align-items-center gap-2">
     <span class="role-tag">{{ role }}</span>
+    <div class="pfp-dropdown-wrapper">
+      <div class="pfp-circle">
+        {% if current_user_picture %}
+          <img src="{{ current_user_picture }}" alt="profile" class="pfp-img">
+        {% endif %}
+      </div>
+      <div class="pfp-dropdown-menu">
+        <a href="/account-settings" class="pfp-dropdown-item">account settings</a>
+        <button class="pfp-dropdown-item pfp-logout-btn" id="logoutBtn">logout</button>
+      </div>
+    </div>
   </div>
 </nav>
 
