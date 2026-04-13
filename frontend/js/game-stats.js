@@ -87,6 +87,67 @@ document.addEventListener('DOMContentLoaded', () => {
     showModal(deleteModal);
   });
 
+let contextGameId       = null;
+let contextGameFeatured = false;
+
+const contextMenu      = document.getElementById('gameContextMenu');
+const ctxFeature       = document.getElementById('ctxFeatureGame');
+const ctxUnfeature     = document.getElementById('ctxUnfeatureGame');
+
+// Show context menu on right-click
+document.getElementById('gamesGrid').addEventListener('contextmenu', e => {
+  const box = e.target.closest('.game-box');
+  if (!box || box.classList.contains('add-btn')) return;
+
+  e.preventDefault();
+
+  contextGameId       = parseInt(box.dataset.gameId);
+  contextGameFeatured = box.dataset.featured === '1';
+
+  // Toggle which option is visible
+  ctxFeature.style.display   = contextGameFeatured ? 'none'  : 'block';
+  ctxUnfeature.style.display = contextGameFeatured ? 'block' : 'none';
+
+  contextMenu.style.display = 'block';
+  contextMenu.style.left    = e.pageX + 'px';
+  contextMenu.style.top     = e.pageY + 'px';
+});
+
+// Hide on any click elsewhere
+document.addEventListener('click', () => {
+  contextMenu.style.display = 'none';
+});
+  let contextGameId       = null;
+let contextGameFeatured = false;
+
+const contextMenu      = document.getElementById('gameContextMenu');
+const ctxFeature       = document.getElementById('ctxFeatureGame');
+const ctxUnfeature     = document.getElementById('ctxUnfeatureGame');
+
+// Show context menu on right-click
+document.getElementById('gamesGrid').addEventListener('contextmenu', e => {
+  const box = e.target.closest('.game-box');
+  if (!box || box.classList.contains('add-btn')) return;
+
+  e.preventDefault();
+
+  contextGameId       = parseInt(box.dataset.gameId);
+  contextGameFeatured = box.dataset.featured === '1';
+
+  // Toggle which option is visible
+  ctxFeature.style.display   = contextGameFeatured ? 'none'  : 'block';
+  ctxUnfeature.style.display = contextGameFeatured ? 'block' : 'none';
+
+  contextMenu.style.display = 'block';
+  contextMenu.style.left    = e.pageX + 'px';
+  contextMenu.style.top     = e.pageY + 'px';
+});
+
+// Hide on any click elsewhere
+document.addEventListener('click', () => {
+  contextMenu.style.display = 'none';
+});
+  
   // ================= LOAD & RENDER GAMES =================
   async function loadGames() {
     try {
