@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS games (
     opponent TEXT NOT NULL,
     game_date TEXT,
     season TEXT,
+    featured INTEGER DEFAULT 0,
+    score TEXT, 
+    note TEXT,
     FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE
 );
 
