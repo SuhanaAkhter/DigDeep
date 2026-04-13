@@ -70,3 +70,33 @@ def remove_game(game_id):
     db = get_db()
     delete_game(db, game_id)
     return jsonify({'success': True})
+
+@game_bp.route('/api/games/featured', methods=['GET'])
+def get_featured_games():
+    db    = get_db()
+    games = db.execute(
+        'SELECT id, opponent, score, note FROM games WHERE featured = 1 ORDER BY game_date DESC LIMIT 5'
+    ).fetchall()
+    return jsonify({'games': [dict(g) for g in games]})
+
+
+@game_bp.route('/api/games/<int:game_id>/feature', methods=['POST'])
+def feature_game(game_id):
+    if 'user_id' not in session or session.get('role') != 'coach':
+        return jsonify({'error': 'unauthorized'}), 403
+
+    db = get_db()
+    db.execute('UPDATE games SET featured = 1 WHERE id = ?', (game_id,))
+    db.commit()
+    return jsonify({'success': True})
+
+
+@game_bp.route('/api/games/<int:game_id>/feature', methods=['DELETE'])
+def unfeature_game(game_id):
+    if 'user_id' not in session or session.get('role') != 'coach':
+        return jsonify({'error': 'unauthorized'}), 403
+
+    db = get_db()
+    db.execute('UPDATE games SET featured = 0 WHERE id = ?', (game_id,))
+    db.commit()
+    return jsonify({'success': True})
