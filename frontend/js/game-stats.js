@@ -29,11 +29,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
   const cancelDeleteBtn  = document.getElementById('cancelDeleteBtn');
   const closeDeleteModal = document.getElementById('closeDeleteModal');
-
-  const contextMenu      = document.getElementById('gameContextMenu');
+  
   const ctxViewStats     = document.getElementById('ctxViewStats');
   const ctxEditGame      = document.getElementById('ctxEditGame');
   const ctxDeleteGame    = document.getElementById('ctxDeleteGame');
+
+  let contextGameId       = null;
+  let contextGameFeatured = false;
+
+  const contextMenu      = document.getElementById('gameContextMenu');
+  const ctxFeature       = document.getElementById('ctxFeatureGame');
+  const ctxUnfeature     = document.getElementById('ctxUnfeatureGame');
+
 
   // ================= STATE =================
   let currentGame     = null;
@@ -87,12 +94,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showModal(deleteModal);
   });
 
-let contextGameId       = null;
-let contextGameFeatured = false;
 
-const contextMenu      = document.getElementById('gameContextMenu');
-const ctxFeature       = document.getElementById('ctxFeatureGame');
-const ctxUnfeature     = document.getElementById('ctxUnfeatureGame');
 
 // Show context menu on right-click
 document.getElementById('gamesGrid').addEventListener('contextmenu', e => {
@@ -117,12 +119,6 @@ document.getElementById('gamesGrid').addEventListener('contextmenu', e => {
 document.addEventListener('click', () => {
   contextMenu.style.display = 'none';
 });
-  let contextGameId       = null;
-let contextGameFeatured = false;
-
-const contextMenu      = document.getElementById('gameContextMenu');
-const ctxFeature       = document.getElementById('ctxFeatureGame');
-const ctxUnfeature     = document.getElementById('ctxUnfeatureGame');
 
 // Show context menu on right-click
 document.getElementById('gamesGrid').addEventListener('contextmenu', e => {
