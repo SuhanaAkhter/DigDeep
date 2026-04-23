@@ -9,10 +9,7 @@
 </head>
 <body>
   <div class="container-fluid px-5">
-    <!-- ================== NAVIGATION ================== -->
     {% include 'shared/navbar.html' %}
-
-    <!-- ================== MAIN CONTENT ================== -->
 
     <div class="row mt-5">
       <div class="col-md-7">
@@ -60,17 +57,10 @@
       <div class="col-md-4 offset-md-1">
         <div class="featured-sidebar">
           <h2 class="sidebar-title">featured games</h2>
-          <p>view all games</p>
-          <div class="game-card">
-            <p class="game-title">MHS VS De la Salle</p>
-            <div class="game-score">3-0</div>
-            <p>it's a clean sweep!</p>
-          </div>
-          <div class="game-card">
-            <p class="game-title">MHS VS LDH</p>
-            <div class="game-score">31 kills</div>
-            <p>someone got murdered...</p>
-          </div>
+          <a href="manage-games" style="color: inherit; text-decoration: underline;">
+            <p>view all games</p>
+          </a>
+          <div id="featuredGamesList"></div>
         </div>
       </div>
     </div>

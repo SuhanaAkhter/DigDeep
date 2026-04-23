@@ -66,49 +66,46 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ── FEATURED GAMES ─────────────────────────────────────
-  // FIX: loadFeaturedGames() was calling featuredGamesContainer.innerHTML = ''
-  // which wiped the sidebar heading and "view all games" link before re-adding cards.
-  // Now it only targets the #featuredGamesList element so the rest of the sidebar survives.
-  // Also fetches real games from the API instead of using hardcoded data.
   async function loadFeaturedGames() {
-    // Try to find a dedicated list container; fall back to the whole sidebar
-    const listEl = document.getElementById('featuredGamesList') || featuredGamesContainer;
+  const listEl = document.getElementById('featuredGamesList') || featuredGamesContainer;
 
-    try {
-      const res = await fetch('/api/games/');
-      if (!res.ok) throw new Error();
-      const games = await res.json();
+  try {
+    const res = await fetch('/api/games/');
+    if (!res.ok) throw new Error();
+    const games = await res.json();
 
-      listEl.innerHTML = '';
-      games.slice(0, 2).forEach(game => {
-        const card = document.createElement('div');
-        card.className = 'game-card';
-        card.innerHTML = `
-          <p class="game-title">MHS VS ${game.opponent}</p>
-          <div class="game-score">${game.game_date || '—'}</div>
-        `;
-        listEl.appendChild(card);
-      });
+    listEl.innerHTML = '';
 
-      if (games.length === 0) {
-        listEl.innerHTML = '<p>no games yet</p>';
-      }
-
-    } catch {
-      // Fallback to hardcoded if API fails
-      listEl.innerHTML = `
-        <div class="game-card">
-          <p class="game-title">MHS VS De la Salle</p>
-          <div class="game-score">3-0</div>
-          <p>it's a clean sweep!</p>
-        </div>
-        <div class="game-card">
-          <p class="game-title">MHS VS LDH</p>
-          <div class="game-score">31 kills</div>
-          <p>someone got murdered...</p>
-        </div>`;
+    if (!games.length) {
+      listEl.innerHTML = '<p>no games yet</p>';
+      return;
     }
+
+    for (const game of games.slice(0, 2)) {
+      let scoreText = '—';
+      try {
+        const setsRes = await fetch(`/api/stats/game/${game.id}/sets`);
+        const sets    = await setsRes.json();
+        if (sets.length) {
+          const mhs = sets.reduce((sum, s) => sum + s.mhs_score, 0);
+          const opp = sets.reduce((sum, s) => sum + s.opp_score, 0);
+          scoreText = `${mhs}–${opp}`;
+        }
+      } catch {}
+
+      const card = document.createElement('div');
+      card.className = 'game-card';
+      card.innerHTML = `
+        <p class="game-title">MHS VS ${game.opponent}</p>
+        <div class="game-score">${scoreText}</div>
+      `;
+      listEl.appendChild(card);
+    }
+
+  } catch {
+    listEl.innerHTML = '<p>no games yet</p>';
   }
+}
 
   // ── REFRESH BUTTON ─────────────────────────────────────
   // FIX: appended to sidebar last so it doesn't get wiped by loadFeaturedGames

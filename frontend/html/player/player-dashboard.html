@@ -44,7 +44,7 @@
             {% for game in games[:2] %}
             <div class="game-card">
               <p class="game-title">MHS VS {{ game.opponent }}</p>
-              <div class="game-score">{{ game.game_date or '—' }}</div>
+              <div class="game-score" data-game-score="{{ game.id }}">—</div>
             </div>
             {% endfor %}
           {% else %}
@@ -54,5 +54,7 @@
       </div>
     </div>
   </div>
+  
+  <script src="/js/dashboard-scores.js"></script>
 </body>
 </html>
