@@ -61,7 +61,14 @@ mail = Mail(app)
 # Coach pages
 @app.route('/coach-dashboard')
 def coach_dashboard_page():
-    return render_template('coach/coach-dashboard.html', role=session.get('role', 'coach'))
+    from db import get_db
+    from models.game_model import get_all_games
+    db = get_db()
+    games = get_all_games(db, team_id=1)
+    return render_template('coach/coach-dashboard.html',
+                           role=session.get('role', 'coach'),
+                           coach_name=session.get('email', 'coach').split('@')[0],
+                           games=games)
 
 @app.route('/permissions')
 def permissions_page():
@@ -86,11 +93,33 @@ def manage_players_page():
 # Player pages
 @app.route('/player-dashboard')
 def player_dashboard_page():
-    return render_template('player/player-dashboard.html', role=session.get('role', 'player'))
+    from db import get_db
+    from models.player_model import get_player_by_user_id
+    from models.game_model import get_all_games
+    db = get_db()
+    player = get_player_by_user_id(db, session.get('user_id')) if session.get('user_id') else None
+    games = get_all_games(db, team_id=1)
+    return render_template('player/player-dashboard.html',
+                           role=session.get('role', 'player'),
+                           player=player,
+                           games=games)
 
 @app.route('/player-stats')
 def player_stats_page():
-    return render_template('player/player-stats.html', role=session.get('role', 'player'))
+    from db import get_db
+    from models.player_model import get_player_by_user_id
+    from models.stats_model import get_season_totals_for_player, get_stats_for_player
+    db = get_db()
+    player = get_player_by_user_id(db, session.get('user_id')) if session.get('user_id') else None
+    totals = get_season_totals_for_player(db, player['id']) if player else {}
+    game_rows = get_stats_for_player(db, player['id']) if player else []
+    # find best game by kills
+    best_game = max(game_rows, key=lambda r: r['kills'], default=None) if game_rows else None
+    return render_template('player/player-stats.html',
+                           role=session.get('role', 'player'),
+                           player=player,
+                           totals=totals,
+                           best_game=best_game)
 
 # Shared pages
 @app.route('/')
