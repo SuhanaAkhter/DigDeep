@@ -8,31 +8,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       window.location.href = '/login';
       return;
     }
-    document.getElementById('displayEmail').textContent     = data.email || '—';
-    document.getElementById('displayRole').textContent      = data.role  || '—';
-    document.getElementById('displayRole').textContent      = data.role  || '—';
+    document.getElementById('displayEmail').textContent = data.email || '—';
+    document.getElementById('displayRole').textContent  = data.role  || '—';
 
-    // Load player name if available
-    if (data.role === 'player') {
-      try {
-        const pRes  = await fetch('/api/player/me');
-        const pData = await pRes.json();
-        if (pData.name) {
-          document.getElementById('displayName').textContent       = pData.name;
-          document.getElementById('displayNameInline').textContent = pData.name;
-        }
-        if (pData.picture) {
-          showProfilePic(pData.picture);
-        }
-      } catch { /* player info optional */ }
-    }
+    // Load name and picture for both roles via /api/player/me
+    try {
+      const pRes  = await fetch('/api/player/me');
+      const pData = await pRes.json();
+      if (pData.name) {
+        document.getElementById('displayName').textContent       = pData.name;
+        document.getElementById('displayNameInline').textContent = pData.name;
+      }
+      if (pData.picture) {
+        showProfilePic(pData.picture);
+      }
+    } catch { /* profile info optional */ }
+
   } catch {
     window.location.href = '/login';
   }
 
   // ── PROFILE PICTURE ─────────────────────────────────────
-  const picInput = document.getElementById('profilePicInput');
-  const picBtn   = document.getElementById('profilePicBtn');
+  const picInput  = document.getElementById('profilePicInput');
+  const picBtn    = document.getElementById('profilePicBtn');
   const picCircle = document.getElementById('profilePicDisplay');
 
   picBtn.addEventListener('click',    () => picInput.click());
@@ -52,7 +50,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       const res  = await fetch('/api/player/upload-picture', {
         method: 'POST',
         body: formData
+        // Do NOT set Content-Type header — browser sets it automatically
+        // with the correct multipart boundary for FormData
       });
+
       const data = await res.json();
 
       if (data.picture_url) {
@@ -81,12 +82,12 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // ── EDIT MODAL ───────────────────────────────────────────
-  const modal      = document.getElementById('editModal');
-  const modalTitle = document.getElementById('modalTitle');
+  const modal       = document.getElementById('editModal');
+  const modalTitle  = document.getElementById('modalTitle');
   const modalFields = document.getElementById('modalFields');
-  const modalError = document.getElementById('modalError');
-  const modalSave  = document.getElementById('modalSave');
-  const closeModal = document.getElementById('closeModal');
+  const modalError  = document.getElementById('modalError');
+  const modalSave   = document.getElementById('modalSave');
+  const closeModal  = document.getElementById('closeModal');
 
   let currentField = null;
 
@@ -94,34 +95,31 @@ document.addEventListener('DOMContentLoaded', async () => {
     btn.addEventListener('click', () => openModal(btn.dataset.field));
   });
 
-  closeModal.addEventListener('click', () => {
-    modal.style.display = 'none';
-  });
-
+  closeModal.addEventListener('click', () => { modal.style.display = 'none'; });
   modal.addEventListener('click', e => {
     if (e.target === modal) modal.style.display = 'none';
   });
 
   function openModal(field) {
-    currentField      = field;
+    currentField           = field;
     modalError.textContent = '';
-    modalSave.disabled = false;
-    modalSave.textContent = 'save';
+    modalSave.disabled     = false;
+    modalSave.textContent  = 'save';
 
     if (field === 'email') {
       modalTitle.textContent = 'change email';
-      modalFields.innerHTML = `
+      modalFields.innerHTML  = `
         <input type="email" id="modalInput1" placeholder="new email">
         <input type="email" id="modalInput2" placeholder="confirm new email">
       `;
     } else if (field === 'name') {
       modalTitle.textContent = 'change name';
-      modalFields.innerHTML = `
+      modalFields.innerHTML  = `
         <input type="text" id="modalInput1" placeholder="new name">
       `;
     } else if (field === 'password') {
       modalTitle.textContent = 'change password';
-      modalFields.innerHTML = `
+      modalFields.innerHTML  = `
         <input type="password" id="modalInput1" placeholder="current password">
         <input type="password" id="modalInput2" placeholder="new password">
         <input type="password" id="modalInput3" placeholder="confirm new password">
@@ -138,7 +136,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     const input2 = document.getElementById('modalInput2')?.value.trim();
     const input3 = document.getElementById('modalInput3')?.value.trim();
 
-    // Validate
     if (currentField === 'email') {
       if (!input1) { modalError.textContent = 'please enter a new email.'; return; }
       if (input1 !== input2) { modalError.textContent = 'emails do not match.'; return; }
@@ -193,17 +190,16 @@ document.addEventListener('DOMContentLoaded', async () => {
         modal.style.display = 'none';
       } else {
         modalError.textContent = data.error || 'could not save changes.';
-        modalSave.disabled    = false;
-        modalSave.textContent = 'save';
+        modalSave.disabled     = false;
+        modalSave.textContent  = 'save';
       }
     } catch {
       modalError.textContent = 'network error — please try again.';
-      modalSave.disabled    = false;
-      modalSave.textContent = 'save';
+      modalSave.disabled     = false;
+      modalSave.textContent  = 'save';
     }
   });
 
-  // Allow Enter key to submit modal
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && modal.style.display === 'flex') {
       modalSave.click();

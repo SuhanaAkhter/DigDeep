@@ -1,10 +1,10 @@
 """
 player_routes.py
 API endpoints for reading and updating player profiles.
-All responses return JSON. The frontend JS fetches these and renders the results.
+All responses return JSON.
 """
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session, current_app
 from db import get_db
 from models.player_model import (
     get_all_players,
@@ -13,96 +13,135 @@ from models.player_model import (
     update_player
 )
 import os
-from flask import Blueprint, request, jsonify, session
 from werkzeug.utils import secure_filename
-from db import get_db
 
 player_bp = Blueprint('player', __name__, url_prefix='/api/players')
+me_bp     = Blueprint('me', __name__, url_prefix='/api/player')
 
 TEAM_ID = 1
- 
-UPLOAD_FOLDER   = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'frontend', 'assets', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
- 
+
+
+def get_upload_folder():
+    """Returns the absolute path to the uploads folder, creating it if needed."""
+    folder = os.path.join(current_app.static_folder, 'assets', 'uploads')
+    os.makedirs(folder, exist_ok=True)
+    return folder
+
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
- 
- 
-# Add to your existing player_bp:
- 
-@player_bp.route('/api/player/me', methods=['GET'])
+
+
+# ── /api/player (singular) routes ──────────────────────────────────────────
+
+@me_bp.route('/me', methods=['GET'])
 def player_me():
     if 'user_id' not in session:
         return jsonify({'error': 'not logged in'}), 401
- 
-    db     = get_db()
-    player = db.execute(
-        'SELECT name, picture FROM players WHERE user_id = ?', (session['user_id'],)
-    ).fetchone()
- 
-    if not player:
-        return jsonify({'error': 'player not found'}), 404
- 
-    return jsonify({'name': player['name'], 'picture': player['picture']})
- 
- 
-@player_bp.route('/api/player/update-name', methods=['POST'])
+
+    db   = get_db()
+    role = session.get('role')
+
+    if role == 'player':
+        row = db.execute(
+            'SELECT name, picture FROM players WHERE user_id = ?',
+            (session['user_id'],)
+        ).fetchone()
+        if not row:
+            return jsonify({'error': 'player not found'}), 404
+        return jsonify({'name': row['name'], 'picture': row['picture']})
+
+    elif role == 'coach':
+        row = db.execute(
+            'SELECT picture FROM users WHERE id = ?',
+            (session['user_id'],)
+        ).fetchone()
+        name = session.get('coach_name') or session.get('email', 'coach').split('@')[0]
+        picture = row['picture'] if row and 'picture' in row.keys() else None
+        return jsonify({'name': name, 'picture': picture})
+
+    return jsonify({'error': 'unknown role'}), 400
+
+
+@me_bp.route('/update-name', methods=['POST'])
 def update_player_name():
     if 'user_id' not in session:
         return jsonify({'error': 'not logged in'}), 401
- 
+
     db   = get_db()
     data = request.get_json()
     name = data.get('name', '').strip()
- 
+
     if not name:
         return jsonify({'error': 'name is required'}), 400
- 
-    db.execute(
-        'UPDATE players SET name = ? WHERE user_id = ?',
-        (name, session['user_id'])
-    )
-    db.commit()
- 
+
+    if session.get('role') == 'player':
+        db.execute(
+            'UPDATE players SET name = ? WHERE user_id = ?',
+            (name, session['user_id'])
+        )
+        db.commit()
+    else:
+        session['coach_name'] = name
+
     return jsonify({'success': True})
- 
- 
-@player_bp.route('/api/player/upload-picture', methods=['POST'])
-def upload_player_picture():
+
+
+@me_bp.route('/upload-picture', methods=['POST'])
+def upload_picture():
     if 'user_id' not in session:
         return jsonify({'error': 'not logged in'}), 401
- 
+
     if 'picture' not in request.files:
         return jsonify({'error': 'no file uploaded'}), 400
- 
+
     file = request.files['picture']
-    if file.filename == '' or not allowed_file(file.filename):
-        return jsonify({'error': 'invalid file type'}), 400
- 
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
- 
-    filename = f"user_{session['user_id']}_{secure_filename(file.filename)}"
-    filepath = os.path.join(UPLOAD_FOLDER, filename)
-    file.save(filepath)
- 
-    picture_url = f"/assets/uploads/{filename}"
- 
-    db = get_db()
-    db.execute(
-        'UPDATE players SET picture = ? WHERE user_id = ?',
-        (picture_url, session['user_id'])
-    )
-    db.commit()
- 
-    return jsonify({'success': True, 'picture_url': picture_url})
+    if not file or file.filename == '':
+        return jsonify({'error': 'no file selected'}), 400
+
+    if not allowed_file(file.filename):
+        return jsonify({'error': 'invalid file type — use png, jpg, gif, or webp'}), 400
+
+    try:
+        upload_folder = get_upload_folder()
+        filename      = f"user_{session['user_id']}_{secure_filename(file.filename)}"
+        filepath      = os.path.join(upload_folder, filename)
+        picture_url   = f"/assets/uploads/{filename}"
+
+        file.save(filepath)
+
+        db   = get_db()
+        role = session.get('role')
+
+        if role == 'player':
+            db.execute(
+                'UPDATE players SET picture = ? WHERE user_id = ?',
+                (picture_url, session['user_id'])
+            )
+        elif role == 'coach':
+            # Ensure the picture column exists (safe no-op if it already does)
+            try:
+                db.execute('ALTER TABLE users ADD COLUMN picture TEXT')
+                db.commit()
+            except Exception:
+                pass  # column already exists
+            db.execute(
+                'UPDATE users SET picture = ? WHERE id = ?',
+                (picture_url, session['user_id'])
+            )
+
+        db.commit()
+        return jsonify({'success': True, 'picture_url': picture_url})
+
+    except Exception as e:
+        return jsonify({'error': f'server error: {str(e)}'}), 500
+
+
+# ── /api/players (plural) routes ───────────────────────────────────────────
 
 @player_bp.route('/', methods=['GET'])
 def list_players():
-    """
-    GET /api/players/
-    Returns all players on the team.
-    The manage-players page calls this on load to populate the player grid.
-    """
     db = get_db()
     players = get_all_players(db, TEAM_ID)
     return jsonify(players)
@@ -110,40 +149,24 @@ def list_players():
 
 @player_bp.route('/<int:player_id>', methods=['GET'])
 def get_player(player_id):
-    """
-    GET /api/players/<player_id>
-    Returns full profile for one player.
-    Called when the coach clicks a player card to open the detail sidebar.
-    """
     db = get_db()
     player = get_player_by_id(db, player_id)
     if not player:
-        return jsonify({'error': 'Player not found'}), 404
+        return jsonify({'error': 'player not found'}), 404
     return jsonify(player)
 
 
 @player_bp.route('/by-user/<int:user_id>', methods=['GET'])
 def get_player_for_user(user_id):
-    """
-    GET /api/players/by-user/<user_id>
-    Returns the player profile linked to a user account.
-    Used by the player dashboard to load the current player's own info.
-    """
     db = get_db()
     player = get_player_by_user_id(db, user_id)
     if not player:
-        return jsonify({'error': 'No player profile found for this user'}), 404
+        return jsonify({'error': 'no player profile found for this user'}), 404
     return jsonify(player)
 
 
 @player_bp.route('/<int:player_id>', methods=['PUT'])
 def edit_player(player_id):
-    """
-    PUT /api/players/<player_id>
-    Updates a player's profile fields. Accepts a JSON body with any of:
-    name, grade, jersey_number, position, picture.
-    Only provided fields are updated.
-    """
     db = get_db()
     data = request.get_json()
     update_player(
