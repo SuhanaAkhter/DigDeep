@@ -102,3 +102,32 @@ def remove_stats(game_id, player_id):
     db = get_db()
     delete_stats(db, game_id, player_id)
     return jsonify({'success': True})
+
+# ── SET SCORES ─────────────────────────────────────────────────────────────
+
+@stats_bp.route('/game/<int:game_id>/sets', methods=['GET'])
+def get_set_scores(game_id):
+    """Returns all set scores for a game."""
+    db = get_db()
+    rows = db.execute(
+        'SELECT set_number, mhs_score, opp_score FROM set_scores WHERE game_id = ? ORDER BY set_number',
+        (game_id,)
+    ).fetchall()
+    return jsonify([dict(r) for r in rows])
+
+
+@stats_bp.route('/game/<int:game_id>/sets/<int:set_number>', methods=['POST'])
+def save_set_score(game_id, set_number):
+    """Upserts the score for a single set."""
+    db   = get_db()
+    data = request.get_json()
+    mhs  = int(data.get('mhs_score', 0))
+    opp  = int(data.get('opp_score', 0))
+    db.execute(
+        '''INSERT INTO set_scores (game_id, set_number, mhs_score, opp_score)
+           VALUES (?, ?, ?, ?)
+           ON CONFLICT(game_id, set_number) DO UPDATE SET mhs_score=excluded.mhs_score, opp_score=excluded.opp_score''',
+        (game_id, set_number, mhs, opp)
+    )
+    db.commit()
+    return jsonify({'success': True})

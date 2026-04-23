@@ -4,11 +4,13 @@ PRAGMA foreign_keys = ON;
 -- USERS w/ authentication, roles
 -------------------------------
 -- Stores all user accounts with role-based access (player or coach).
+
 CREATE TABLE IF NOT EXISTS users (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     email TEXT NOT NULL UNIQUE,
     password_hash TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('player', 'coach'))
+    role TEXT NOT NULL CHECK (role IN ('player', 'coach')),
+    picture TEXT
 );
 
 --------------------------------
@@ -79,18 +81,33 @@ CREATE TABLE IF NOT EXISTS player_stats (
 );
 
 --------------------------------
--- HEAT MAP EVENTS 
+-- SET SCORES
 --------------------------------
--- Stores individual ball-drop or event click coordinates for the heatmap feature.
--- event_type distinguishes between kills, aces, digs, etc. on the court.
-CREATE TABLE IF NOT EXISTS heatmap_events (
+-- Stores the score for each set within a game.
+-- mhs_score and opp_score are the points won by each side in that set.
+CREATE TABLE IF NOT EXISTS set_scores (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     game_id INTEGER NOT NULL,
-    player_id INTEGER NOT NULL,
-    event_type TEXT NOT NULL,
-    x REAL NOT NULL,
-    y REAL NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    set_number INTEGER NOT NULL,
+    mhs_score INTEGER DEFAULT 0,
+    opp_score INTEGER DEFAULT 0,
     FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
-    FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+    UNIQUE (game_id, set_number)
 );
+
+-- --------------------------------
+-- -- HEAT MAP EVENTS 
+-- --------------------------------
+-- -- Stores individual ball-drop or event click coordinates for the heatmap feature.
+-- -- event_type distinguishes between kills, aces, digs, etc. on the court.
+-- CREATE TABLE IF NOT EXISTS heatmap_events (
+--     id INTEGER PRIMARY KEY AUTOINCREMENT,
+--     game_id INTEGER NOT NULL,
+--     player_id INTEGER NOT NULL,
+--     event_type TEXT NOT NULL,
+--     x REAL NOT NULL,
+--     y REAL NOT NULL,
+--     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+--     FOREIGN KEY (game_id) REFERENCES games(id) ON DELETE CASCADE,
+--     FOREIGN KEY (player_id) REFERENCES players(id) ON DELETE CASCADE
+-- );

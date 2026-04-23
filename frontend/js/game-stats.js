@@ -29,18 +29,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
   const cancelDeleteBtn  = document.getElementById('cancelDeleteBtn');
   const closeDeleteModal = document.getElementById('closeDeleteModal');
-  
-  const ctxViewStats     = document.getElementById('ctxViewStats');
-  const ctxEditGame      = document.getElementById('ctxEditGame');
-  const ctxDeleteGame    = document.getElementById('ctxDeleteGame');
 
-  let contextGameId       = null;
-  let contextGameFeatured = false;
-
-  const contextMenu      = document.getElementById('gameContextMenu');
-  const ctxFeature       = document.getElementById('ctxFeatureGame');
-  const ctxUnfeature     = document.getElementById('ctxUnfeatureGame');
-
+  const contextMenu          = document.getElementById('gameContextMenu');
+  const ctxViewStats         = document.getElementById('ctxViewStats');
+  const ctxEditGame          = document.getElementById('ctxEditGame');
+  const ctxDeleteGame        = document.getElementById('ctxDeleteGame');
 
   // ================= STATE =================
   let currentGame     = null;
@@ -67,8 +60,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // ================= CONTEXT MENU =================
   function showContextMenu(x, y, game) {
     currentGame = game;
-    contextMenu.style.left = `${x}px`;
-    contextMenu.style.top  = `${y}px`;
+    contextMenu.style.left    = `${x}px`;
+    contextMenu.style.top     = `${y}px`;
     contextMenu.style.display = 'block';
   }
 
@@ -94,56 +87,16 @@ document.addEventListener('DOMContentLoaded', () => {
     showModal(deleteModal);
   });
 
+  // Right-click on a game box
+  document.getElementById('gamesGrid').addEventListener('contextmenu', e => {
+    const box = e.target.closest('.game-box');
+    if (!box || box.classList.contains('add-btn')) return;
+    e.preventDefault();
+    const gameId = parseInt(box.dataset.gameId);
+    currentGame  = { id: gameId, opponent: box.dataset.opponent };
+    showContextMenu(e.pageX, e.pageY, currentGame);
+  });
 
-
-// Show context menu on right-click
-document.getElementById('gamesGrid').addEventListener('contextmenu', e => {
-  const box = e.target.closest('.game-box');
-  if (!box || box.classList.contains('add-btn')) return;
-
-  e.preventDefault();
-
-  contextGameId       = parseInt(box.dataset.gameId);
-  contextGameFeatured = box.dataset.featured === '1';
-
-  // Toggle which option is visible
-  ctxFeature.style.display   = contextGameFeatured ? 'none'  : 'block';
-  ctxUnfeature.style.display = contextGameFeatured ? 'block' : 'none';
-
-  contextMenu.style.display = 'block';
-  contextMenu.style.left    = e.pageX + 'px';
-  contextMenu.style.top     = e.pageY + 'px';
-});
-
-// Hide on any click elsewhere
-document.addEventListener('click', () => {
-  contextMenu.style.display = 'none';
-});
-
-// Show context menu on right-click
-document.getElementById('gamesGrid').addEventListener('contextmenu', e => {
-  const box = e.target.closest('.game-box');
-  if (!box || box.classList.contains('add-btn')) return;
-
-  e.preventDefault();
-
-  contextGameId       = parseInt(box.dataset.gameId);
-  contextGameFeatured = box.dataset.featured === '1';
-
-  // Toggle which option is visible
-  ctxFeature.style.display   = contextGameFeatured ? 'none'  : 'block';
-  ctxUnfeature.style.display = contextGameFeatured ? 'block' : 'none';
-
-  contextMenu.style.display = 'block';
-  contextMenu.style.left    = e.pageX + 'px';
-  contextMenu.style.top     = e.pageY + 'px';
-});
-
-// Hide on any click elsewhere
-document.addEventListener('click', () => {
-  contextMenu.style.display = 'none';
-});
-  
   // ================= LOAD & RENDER GAMES =================
   async function loadGames() {
     try {
@@ -152,7 +105,7 @@ document.addEventListener('click', () => {
       const games = await res.json();
       renderGames(games);
       renderFeaturedSidebar(games);
-    } catch (err) {
+    } catch {
       gamesGrid.innerHTML = '<p style="color:red;">unable to load games.</p>';
     }
   }
@@ -163,24 +116,23 @@ document.addEventListener('click', () => {
     games.forEach((game, index) => {
       const box = document.createElement('div');
       box.className = `game-box ${colours[index % colours.length]}`;
+      box.dataset.gameId   = game.id;
+      box.dataset.opponent = game.opponent;
+
       box.innerHTML = `
         <div class="game-box-title">MHS VS ${game.opponent}</div>
         <div class="game-box-score" id="score-${game.id}">—</div>
       `;
 
-      // Left click → view stats
       box.addEventListener('click', () => openViewModal(game));
-
-      // Right click → context menu
       box.addEventListener('contextmenu', e => {
         e.preventDefault();
-        showContextMenu(e.clientX, e.clientY, game);
+        currentGame = game;
+        showContextMenu(e.pageX, e.pageY, game);
       });
 
       gamesGrid.appendChild(box);
-
-      // Load score for this game asynchronously
-      loadGameScore(game.id);
+      loadGameTileStat(game.id);
     });
 
     // + add button
@@ -195,35 +147,47 @@ document.addEventListener('click', () => {
     gamesGrid.appendChild(addBox);
   }
 
-  async function loadGameScore(gameId) {
+  // Loads the value shown on a game tile — either a specific stat or the total score
+  async function loadGameTileStat(gameId) {
+    const el = document.getElementById(`score-${gameId}`);
+    if (!el) return;
     try {
-      const res = await fetch(`/api/stats/game/${gameId}`);
-      const stats = await res.json();
-      const scoreEl = document.getElementById(`score-${gameId}`);
-      if (!scoreEl) return;
-      if (stats.length === 0) {
-        scoreEl.textContent = '—';
-        return;
-      }
-      const totals = stats.reduce((acc, r) => {
-        acc.kills += r.kills;
-        return acc;
-      }, { kills: 0 });
-      scoreEl.textContent = `${totals.kills} kills`;
-    } catch {}
+      const res  = await fetch(`/api/stats/game/${gameId}/sets`);
+      const sets = await res.json();
+      if (!sets.length) { el.textContent = '—'; return; }
+      const mhs = sets.reduce((sum, s) => sum + s.mhs_score, 0);
+      const opp = sets.reduce((sum, s) => sum + s.opp_score, 0);
+      el.textContent = `${mhs}–${opp}`;
+    } catch {
+      el.textContent = '—';
+    }
   }
 
-  function renderFeaturedSidebar(games) {
+  // Sidebar shows total score (sets won)
+  async function renderFeaturedSidebar(games) {
     featuredList.innerHTML = '';
-    games.slice(0, 2).forEach(game => {
+    for (const game of games.slice(0, 2)) {
       const card = document.createElement('div');
       card.className = 'game-card';
+
+      let scoreText = '—';
+      try {
+        const res  = await fetch(`/api/stats/game/${game.id}/sets`);
+        const sets = await res.json();
+        if (sets.length) {
+          const mhs = sets.reduce((sum, s) => sum + s.mhs_score, 0);
+          const opp = sets.reduce((sum, s) => sum + s.opp_score, 0);
+          scoreText = `${mhs}–${opp}`;
+        }
+      } catch {}
+
       card.innerHTML = `
         <p class="game-title">MHS VS ${game.opponent}</p>
-        <div class="game-score">${game.game_date || ''}</div>
+        <div class="game-score">${scoreText}</div>
       `;
       featuredList.appendChild(card);
-    });
+    }
+    if (!games.length) featuredList.innerHTML = '<p style="opacity:0.7;">no games yet</p>';
   }
 
   // ================= VIEW MODAL =================
@@ -237,16 +201,40 @@ document.addEventListener('click', () => {
     setSidebar.innerHTML = '';
     showModal(viewModal);
 
+    // Load set scores and player stats in parallel
     try {
-      const res = await fetch(`/api/stats/game/${game.id}`);
-      const stats = await res.json();
+      const [statsRes, setsRes] = await Promise.all([
+        fetch(`/api/stats/game/${game.id}`),
+        fetch(`/api/stats/game/${game.id}/sets`)
+      ]);
+      const stats = await statsRes.json();
+      const sets  = await setsRes.json();
 
-      if (stats.length === 0) {
+      // Render set score boxes in sidebar
+      const setCount = Math.max(sets.length, 3);
+      for (let i = 1; i <= setCount; i++) {
+        const setData = sets.find(s => s.set_number === i) || { mhs_score: 0, opp_score: 0 };
+        const box = document.createElement('div');
+        box.className = `set-score-box${i === 1 ? ' active' : ''}`;
+        box.dataset.setNumber = i;
+        box.innerHTML = `
+          SET #${i}<br>
+          <span style="font-size:1.2rem; font-weight:900;">
+            ${setData.mhs_score}–${setData.opp_score}
+          </span>
+        `;
+        box.addEventListener('click', () => {
+          document.querySelectorAll('.set-score-box').forEach(b => b.classList.remove('active'));
+          box.classList.add('active');
+        });
+        setSidebar.appendChild(box);
+      }
+
+      if (!stats.length) {
         viewKills.innerHTML  = 'kills<br>—';
         viewAces.innerHTML   = 'aces<br>—';
         viewBlocks.innerHTML = 'blocks<br>—';
         viewFeatured.textContent = 'no stats yet — click edit stats to add';
-        setSidebar.innerHTML = '<p style="color:#F5EBD7; font-size:0.85rem;">no sets recorded</p>';
         return;
       }
 
@@ -264,25 +252,12 @@ document.addEventListener('click', () => {
       const mvp = stats.reduce((best, r) => r.kills > best.kills ? r : best, stats[0]);
       viewFeatured.textContent = `featured player: ${mvp.name.toUpperCase()}`;
 
-      // Render placeholder set boxes (3 sets by default)
-      ['SET #1', 'SET #2', 'SET #3'].forEach((label, i) => {
-        const box = document.createElement('div');
-        box.className = `set-score-box${i === 0 ? ' active' : ''}`;
-        box.innerHTML = `${label}<br><span style="font-size:1.5rem;">—</span>`;
-        box.addEventListener('click', () => {
-          document.querySelectorAll('.set-score-box').forEach(b => b.classList.remove('active'));
-          box.classList.add('active');
-        });
-        setSidebar.appendChild(box);
-      });
-
     } catch {
       viewFeatured.textContent = 'could not load stats';
     }
   }
 
   closeViewModal.addEventListener('click', () => hideModal(viewModal));
-
   openEditBtn.addEventListener('click', () => {
     hideModal(viewModal);
     openEditModal(currentGame);
@@ -292,27 +267,69 @@ document.addEventListener('click', () => {
   async function openEditModal(game) {
     currentGame = game;
     editOpponent.textContent = game.opponent.toUpperCase();
-    editModalBody.innerHTML = '<p style="color:#F5EBD7;">loading players…</p>';
+    editModalBody.innerHTML  = '<p style="color:#F5EBD7;">loading…</p>';
     showModal(editModal);
 
-    let players = [];
-    let existingStats = {};
+    let players = [], existingStats = {}, existingSets = [];
 
     try {
-      const [playersRes, statsRes] = await Promise.all([
+      const [playersRes, statsRes, setsRes] = await Promise.all([
         fetch('/api/players/'),
-        fetch(`/api/stats/game/${game.id}`)
+        fetch(`/api/stats/game/${game.id}`),
+        fetch(`/api/stats/game/${game.id}/sets`)
       ]);
       players = await playersRes.json();
       const statsArr = await statsRes.json();
       statsArr.forEach(s => { existingStats[s.player_id] = s; });
+      existingSets = await setsRes.json();
     } catch {
-      editModalBody.innerHTML = '<p style="color:red;">failed to load player data.</p>';
+      editModalBody.innerHTML = '<p style="color:red;">failed to load data.</p>';
       return;
     }
 
-    editModalBody.innerHTML = `
-      <div style="overflow-y:auto; max-height:350px;">
+    // Build set score editors (3 sets by default, show up to however many exist or 3)
+    const setCount = Math.max(existingSets.length, 3);
+    let setsHtml = `
+      <div style="margin-bottom:18px;">
+        <div style="color:#D9AEAE; font-weight:900; font-size:1rem; margin-bottom:8px;">set scores</div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+    `;
+    for (let i = 1; i <= setCount; i++) {
+      const s = existingSets.find(x => x.set_number === i) || { mhs_score: 0, opp_score: 0 };
+      setsHtml += `
+        <div style="background:#B0947B; border-radius:12px; padding:10px 14px; text-align:center; color:white;">
+          <div style="font-size:0.8rem; font-weight:bold; margin-bottom:6px;">set ${i}</div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <div style="text-align:center;">
+              <div style="font-size:0.65rem; opacity:0.8;">mhs</div>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <button class="set-adj-btn" data-set="${i}" data-side="mhs" data-dir="up"
+                        style="background:rgba(255,255,255,0.3);border:none;border-radius:4px;color:white;font-weight:bold;width:28px;cursor:pointer;">▲</button>
+                <span class="set-val" id="set-${i}-mhs" style="font-size:1.2rem;font-weight:900;">${s.mhs_score}</span>
+                <button class="set-adj-btn" data-set="${i}" data-side="mhs" data-dir="down"
+                        style="background:rgba(255,255,255,0.3);border:none;border-radius:4px;color:white;font-weight:bold;width:28px;cursor:pointer;">▼</button>
+              </div>
+            </div>
+            <span style="font-size:1.2rem; font-weight:900; padding-top:4px;">–</span>
+            <div style="text-align:center;">
+              <div style="font-size:0.65rem; opacity:0.8;">opp</div>
+              <div style="display:flex; flex-direction:column; gap:2px;">
+                <button class="set-adj-btn" data-set="${i}" data-side="opp" data-dir="up"
+                        style="background:rgba(255,255,255,0.3);border:none;border-radius:4px;color:white;font-weight:bold;width:28px;cursor:pointer;">▲</button>
+                <span class="set-val" id="set-${i}-opp" style="font-size:1.2rem;font-weight:900;">${s.opp_score}</span>
+                <button class="set-adj-btn" data-set="${i}" data-side="opp" data-dir="down"
+                        style="background:rgba(255,255,255,0.3);border:none;border-radius:4px;color:white;font-weight:bold;width:28px;cursor:pointer;">▼</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+    setsHtml += `</div></div>`;
+
+    // Player stats table
+    const tableHtml = `
+      <div style="overflow-y:auto; max-height:250px;">
         <table style="width:100%; color:#F5EBD7; border-collapse:collapse;">
           <thead>
             <tr style="text-align:center; border-bottom:1px solid rgba(255,255,255,0.2);">
@@ -343,38 +360,69 @@ document.addEventListener('click', () => {
       <button id="saveStatsBtn" class="save-btn-floating">save changes</button>
     `;
 
-    document.getElementById('saveStatsBtn').addEventListener('click', () => saveAllStats(game.id));
+    editModalBody.innerHTML = setsHtml + tableHtml;
+
+    // Wire up ▲▼ buttons
+    editModalBody.querySelectorAll('.set-adj-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const setNum = btn.dataset.set;
+        const side   = btn.dataset.side; // 'mhs' or 'opp'
+        const dir    = btn.dataset.dir;  // 'up' or 'down'
+        const valEl  = document.getElementById(`set-${setNum}-${side}`);
+        let val = parseInt(valEl.textContent) || 0;
+        val = dir === 'up' ? val + 1 : Math.max(0, val - 1);
+        valEl.textContent = val;
+      });
+    });
+
+    document.getElementById('saveStatsBtn').addEventListener('click', () => saveAll(game.id, setCount));
   }
 
   closeEditModal.addEventListener('click', () => hideModal(editModal));
 
-  async function saveAllStats(gameId) {
-    const rows = editModalBody.querySelectorAll('tr[data-player-id]');
-    try {
-      await Promise.all(Array.from(rows).map(row => {
-        const playerId = row.getAttribute('data-player-id');
-        const inputs   = row.querySelectorAll('input');
-        return fetch(`/api/stats/game/${gameId}/player/${playerId}`, {
+  async function saveAll(gameId, setCount) {
+    // Save set scores
+    const setPromises = [];
+    for (let i = 1; i <= setCount; i++) {
+      const mhs = parseInt(document.getElementById(`set-${i}-mhs`)?.textContent) || 0;
+      const opp = parseInt(document.getElementById(`set-${i}-opp`)?.textContent) || 0;
+      setPromises.push(
+        fetch(`/api/stats/game/${gameId}/sets/${i}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            kills:   parseInt(inputs[0].value) || 0,
-            assists: parseInt(inputs[1].value) || 0,
-            aces:    parseInt(inputs[2].value) || 0,
-            blocks:  parseInt(inputs[3].value) || 0,
-            digs:    parseInt(inputs[4].value) || 0
-          })
-        });
-      }));
+          body: JSON.stringify({ mhs_score: mhs, opp_score: opp })
+        })
+      );
+    }
+
+    // Save player stats
+    const rows = editModalBody.querySelectorAll('tr[data-player-id]');
+    const statPromises = Array.from(rows).map(row => {
+      const playerId = row.getAttribute('data-player-id');
+      const inputs   = row.querySelectorAll('input');
+      return fetch(`/api/stats/game/${gameId}/player/${playerId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          kills:   parseInt(inputs[0].value) || 0,
+          assists: parseInt(inputs[1].value) || 0,
+          aces:    parseInt(inputs[2].value) || 0,
+          blocks:  parseInt(inputs[3].value) || 0,
+          digs:    parseInt(inputs[4].value) || 0
+        })
+      });
+    });
+
+    try {
+      await Promise.all([...setPromises, ...statPromises]);
       hideModal(editModal);
       loadGames();
     } catch {
-      alert('error saving stats.');
+      alert('error saving — please try again.');
     }
   }
 
   // ================= ADD GAME =================
-  // Live preview of opponent name
   newOpponentInput.addEventListener('input', () => {
     opponentPreview.textContent = newOpponentInput.value.trim() || '.....';
   });
@@ -383,10 +431,7 @@ document.addEventListener('click', () => {
 
   saveNewGameBtn.addEventListener('click', async () => {
     const opponent = newOpponentInput.value.trim();
-    if (!opponent) {
-      alert('please enter the opposing school name.');
-      return;
-    }
+    if (!opponent) { alert('please enter the opposing school name.'); return; }
     const today = new Date().toISOString().split('T')[0];
     try {
       const res = await fetch('/api/games/', {
@@ -423,5 +468,4 @@ document.addEventListener('click', () => {
 
   // ================= INIT =================
   loadGames();
-
 });
