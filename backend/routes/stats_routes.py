@@ -1,10 +1,9 @@
 """
 stats_routes.py
 API endpoints for reading and writing player stats.
-Stats are always scoped to a game. Season totals are computed aggregates.
 """
 
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, request, session
 from db import get_db
 from models.stats_model import (
     get_stats_for_game,
@@ -22,93 +21,53 @@ TEAM_ID = 1
 
 @stats_bp.route('/game/<int:game_id>', methods=['GET'])
 def stats_for_game(game_id):
-    """
-    GET /api/stats/game/<game_id>
-    Returns all player stat rows for a single game, with player names.
-    Used by the view/edit game modal to show the stat breakdown per player.
-    """
     db = get_db()
-    stats = get_stats_for_game(db, game_id)
-    return jsonify(stats)
+    return jsonify(get_stats_for_game(db, game_id))
 
 
 @stats_bp.route('/player/<int:player_id>', methods=['GET'])
 def stats_for_player(player_id):
-    """
-    GET /api/stats/player/<player_id>
-    Returns all per-game stats for a single player with game info.
-    Used on the player stats history page.
-    """
     db = get_db()
-    stats = get_stats_for_player(db, player_id)
-    return jsonify(stats)
+    return jsonify(get_stats_for_player(db, player_id))
 
 
 @stats_bp.route('/player/<int:player_id>/totals', methods=['GET'])
 def player_totals(player_id):
-    """
-    GET /api/stats/player/<player_id>/totals
-    Returns aggregated season totals for one player.
-    Used by the player dashboard summary cards.
-    """
     db = get_db()
-    totals = get_season_totals_for_player(db, player_id)
-    return jsonify(totals)
+    return jsonify(get_season_totals_for_player(db, player_id))
 
 
 @stats_bp.route('/team/totals', methods=['GET'])
 def team_totals():
-    """
-    GET /api/stats/team/totals
-    Returns aggregated season totals across all players on the team.
-    Used by the team-stats page stat cards.
-    """
     db = get_db()
-    totals = get_season_totals_for_team(db, TEAM_ID)
-    return jsonify(totals)
+    return jsonify(get_season_totals_for_team(db, TEAM_ID))
 
 
 @stats_bp.route('/game/<int:game_id>/player/<int:player_id>', methods=['POST'])
 def submit_stats(game_id, player_id):
-    """
-    POST /api/stats/game/<game_id>/player/<player_id>
-    Saves or updates stats for one player in one game.
-    Expects JSON body: { kills, assists, aces, blocks, digs }.
-    Uses INSERT OR REPLACE so re-submitting overwrites the previous entry.
-    Called when the coach saves from the edit game modal.
-    """
-    db = get_db()
+    db   = get_db()
     data = request.get_json()
-
-    save_stats(
-        db,
-        game_id,
-        player_id,
-        kills=data.get('kills', 0),
-        assists=data.get('assists', 0),
-        aces=data.get('aces', 0),
-        blocks=data.get('blocks', 0),
-        digs=data.get('digs', 0)
-    )
+    save_stats(db, game_id, player_id,
+               kills=data.get('kills', 0),
+               assists=data.get('assists', 0),
+               aces=data.get('aces', 0),
+               blocks=data.get('blocks', 0),
+               digs=data.get('digs', 0))
     return jsonify({'success': True})
 
 
 @stats_bp.route('/game/<int:game_id>/player/<int:player_id>', methods=['DELETE'])
 def remove_stats(game_id, player_id):
-    """
-    DELETE /api/stats/game/<game_id>/player/<player_id>
-    Removes the stat row for a player in a game.
-    """
     db = get_db()
     delete_stats(db, game_id, player_id)
     return jsonify({'success': True})
 
-# ── SET SCORES ─────────────────────────────────────────────────────────────
+
+# ── SET SCORES ──────────────────────────────────────────────────────────────
 
 @stats_bp.route('/game/<int:game_id>/sets', methods=['GET'])
 def get_set_scores(game_id):
-    """Returns all set scores for a game."""
-    db = get_db()
+    db   = get_db()
     rows = db.execute(
         'SELECT set_number, mhs_score, opp_score FROM set_scores WHERE game_id = ? ORDER BY set_number',
         (game_id,)
@@ -118,16 +77,38 @@ def get_set_scores(game_id):
 
 @stats_bp.route('/game/<int:game_id>/sets/<int:set_number>', methods=['POST'])
 def save_set_score(game_id, set_number):
-    """Upserts the score for a single set."""
     db   = get_db()
     data = request.get_json()
     mhs  = int(data.get('mhs_score', 0))
     opp  = int(data.get('opp_score', 0))
     db.execute(
-        '''INSERT INTO set_scores (game_id, set_number, mhs_score, opp_score)
-           VALUES (?, ?, ?, ?)
-           ON CONFLICT(game_id, set_number) DO UPDATE SET mhs_score=excluded.mhs_score, opp_score=excluded.opp_score''',
+        'INSERT OR REPLACE INTO set_scores (game_id, set_number, mhs_score, opp_score) VALUES (?, ?, ?, ?)',
         (game_id, set_number, mhs, opp)
+    )
+    db.commit()
+    return jsonify({'success': True})
+
+
+# ── PERMISSIONS ─────────────────────────────────────────────────────────────
+
+@stats_bp.route('/permissions', methods=['GET'])
+def get_permissions():
+    db  = get_db()
+    row = db.execute('SELECT allow_players_view_stats FROM permissions WHERE id = 1').fetchone()
+    if not row:
+        return jsonify({'allow_players_view_stats': True})
+    return jsonify({'allow_players_view_stats': bool(row['allow_players_view_stats'])})
+
+
+@stats_bp.route('/permissions', methods=['POST'])
+def save_permissions():
+    if session.get('role') != 'coach':
+        return jsonify({'error': 'unauthorized'}), 403
+    db   = get_db()
+    data = request.get_json()
+    val  = 1 if data.get('allow_players_view_stats') else 0
+    db.execute(
+        'INSERT OR REPLACE INTO permissions (id, allow_players_view_stats) VALUES (1, ?)', (val,)
     )
     db.commit()
     return jsonify({'success': True})

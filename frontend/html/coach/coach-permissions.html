@@ -19,7 +19,7 @@
     <div class="permissions-card">
       <div class="permission-row">
         <label class="toggle-switch">
-          <input type="checkbox" checked>
+          <input type="checkbox" id="toggleTeamStats">
           <span class="toggle-slider"></span>
         </label>
         allow players to view full team stats
@@ -27,6 +27,24 @@
     </div>
   </div>
 
+  <script>
+    const toggle = document.getElementById('toggleTeamStats');
+
+    // Load current setting
+    fetch('/api/stats/permissions')
+      .then(r => r.json())
+      .then(data => { toggle.checked = data.allow_players_view_stats; })
+      .catch(() => { toggle.checked = true; });
+
+    // Save on change
+    toggle.addEventListener('change', () => {
+      fetch('/api/stats/permissions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ allow_players_view_stats: toggle.checked })
+      });
+    });
+  </script>
   <script src="/js/navbar.js"></script>
 </body>
 </html>

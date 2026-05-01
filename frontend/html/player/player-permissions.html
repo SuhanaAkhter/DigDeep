@@ -16,9 +16,36 @@
     <h1 class="permissions-title">permissions</h1>
 
     <div class="permissions-card">
+      <div id="permissionsContent">
+        <p style="opacity:0.6;">loading...</p>
+      </div>
     </div>
   </div>
 
+  <script>
+    fetch('/api/stats/permissions')
+      .then(r => r.json())
+      .then(data => {
+        const el = document.getElementById('permissionsContent');
+        if (data.allow_players_view_stats) {
+          el.innerHTML = `
+            <div class="permission-row">
+              <span style="color:#7a9e7e; font-size:1.2rem;">✓</span>
+              you can view full team stats
+            </div>`;
+        } else {
+          el.innerHTML = `
+            <div class="permission-row">
+              <span style="color:#a05050; font-size:1.2rem;">✗</span>
+              team stats are currently hidden by your coach
+            </div>`;
+        }
+      })
+      .catch(() => {
+        document.getElementById('permissionsContent').innerHTML =
+          '<p style="opacity:0.6;">could not load permissions</p>';
+      });
+  </script>
   <script src="/js/navbar.js"></script>
 </body>
 </html>

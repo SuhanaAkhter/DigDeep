@@ -95,6 +95,17 @@ CREATE TABLE IF NOT EXISTS set_scores (
     UNIQUE (game_id, set_number)
 );
 
+--------------------------------
+-- PERMISSIONS
+--------------------------------
+CREATE TABLE IF NOT EXISTS permissions (
+    id INTEGER PRIMARY KEY,
+    allow_players_view_stats INTEGER DEFAULT 1
+);
+
+-- Insert default row so there's always something to read
+INSERT OR IGNORE INTO permissions (id, allow_players_view_stats) VALUES (1, 1);
+
 -- --------------------------------
 -- -- HEAT MAP EVENTS 
 -- --------------------------------
