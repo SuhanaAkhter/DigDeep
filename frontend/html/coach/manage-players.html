@@ -16,6 +16,7 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../../css/dashboard.css">
   <link rel="stylesheet" href="../../css/manage-players.css">
+  <link rel="stylesheet" href="../../css/game-stats.css">
   <title>Manage Players | Dig Deep</title>
 </head>
 <body>
@@ -25,7 +26,7 @@
 
     <!-- ================== MAIN CONTENT ================== -->
     <div class="row">
-      <!-- ========== PLAYERS LIST COLUMN ========== -->
+      <!-- ========== PLAYERS LIST ========== -->
       <div class="col-md-8">
         <h1 class="page-header-text">players</h1>
 
@@ -39,177 +40,90 @@
             <label><input type="checkbox" class="position-filter" value="Setter"> setter</label>
             <label><input type="checkbox" class="position-filter" value="Libero"> libero</label>
             <label><input type="checkbox" class="position-filter" value="Middle"> middle</label>
+            <label><input type="checkbox" class="position-filter" value="Outside"> outside</label>
+            <label><input type="checkbox" class="position-filter" value="Opposite"> opposite</label>
           </div>
         </div>
 
-        <!-- Players Grid -->
-        <div id="playersGrid" class="row row-cols-4 g-4">
-          <!-- Player cards inserted dynamically -->
-        </div>
+        <div id="playersGrid" class="row row-cols-4 g-4"></div>
       </div>
 
-      <!-- ========== PLAYER DETAIL COLUMN ========== -->
+      <!-- ========== PLAYER DETAIL ========== -->
       <div class="col-md-3 offset-md-1">
         <div id="playerDetailCard" class="player-detail-card" style="display:none;">
           <h2 id="playerName" class="linda-title"></h2>
           <div class="d-flex justify-content-between align-items-start">
             <div id="playerInfo" class="linda-info"></div>
-            <div class="linda-upload-box">
+            <div id="playerPicDisplay" class="linda-upload-box">
               <img src="../../assets/icons/upload_arrow.png" style="width:30px;">
             </div>
           </div>
-          <button class="view-stats-btn mt-4">view stats</button>
-          <div class="featured-game-mini mt-4">
-            <p class="mb-1">featured game:</p>
-            <div id="featuredGame" class="game-tag"></div>
+          <button class="view-stats-btn mt-4" id="viewStatsBtn">view stats</button>
+          <div id="playerStatsPreview" class="mt-4" style="display:none;">
+            <div class="row g-2 mt-1">
+              <div class="col-6">
+                <div class="stat-card olive" style="min-height:80px;border-radius:12px;">
+                  <p class="stat-label" style="font-size:0.8rem;">kills</p>
+                  <div class="stat-value" style="font-size:2rem;" id="previewKills">—</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-card pink" style="min-height:80px;border-radius:12px;">
+                  <p class="stat-label" style="font-size:0.8rem;">aces</p>
+                  <div class="stat-value" style="font-size:2rem;" id="previewAces">—</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-card brown" style="min-height:80px;border-radius:12px;">
+                  <p class="stat-label" style="font-size:0.8rem;">blocks</p>
+                  <div class="stat-value" style="font-size:2rem;" id="previewBlocks">—</div>
+                </div>
+              </div>
+              <div class="col-6">
+                <div class="stat-card olive" style="min-height:80px;border-radius:12px;">
+                  <p class="stat-label" style="font-size:0.8rem;">digs</p>
+                  <div class="stat-value" style="font-size:2rem;" id="previewDigs">—</div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ================== ADD PLAYER POPUP ================== -->
-  <div id="addPlayerPopup" style="
-      display:none;
-      position: fixed;
-      top:50%; left:50%;
-      transform: translate(-50%, -50%);
-      background-color: #f8d7da;
-      border-radius: 15px;
-      padding: 20px;
-      width: 300px;
-      box-shadow: 0 0 15px rgba(0,0,0,0.3);
-      z-index: 1000;
-  ">
-    <h4 class="text-center">Add Player</h4>
-    <div class="mb-2">
-      <label>Name</label>
-      <input type="text" id="newPlayerName" class="form-control">
-    </div>
-    <div class="mb-2">
-      <label>Grade</label>
-      <input type="number" id="newPlayerGrade" class="form-control">
-    </div>
-    <div class="mb-2">
-      <label>Positions (comma-separated)</label>
-      <input type="text" id="newPlayerPositions" class="form-control">
-    </div>
-    <div class="d-flex justify-content-end gap-2 mt-3">
-      <button class="btn btn-secondary btn-sm" id="cancelAddPlayer">Cancel</button>
-      <button class="btn btn-primary btn-sm" id="saveAddPlayer">Add</button>
+  <!-- ADD PLAYER MODAL -->
+  <div id="addPlayerModal" class="custom-modal">
+    <div class="modal-content-small">
+      <div class="modal-header-custom">
+        <span>add player</span>
+        <button class="close-modal" id="closeAddPlayer">✖</button>
+      </div>
+      <div class="modal-body-custom" style="padding:20px;">
+        <div class="d-flex flex-column gap-3">
+          <div>
+            <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">name</label>
+            <input type="text" id="newPlayerName" class="lorem-input w-100 mt-1" placeholder="player name">
+          </div>
+          <div>
+            <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">grade</label>
+            <input type="text" id="newPlayerGrade" class="lorem-input w-100 mt-1" placeholder="e.g. 11">
+          </div>
+          <div>
+            <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">position</label>
+            <input type="text" id="newPlayerPosition" class="lorem-input w-100 mt-1" placeholder="e.g. Middle, Setter">
+          </div>
+          <div>
+            <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">jersey #</label>
+            <input type="number" id="newPlayerJersey" class="lorem-input w-100 mt-1" placeholder="e.g. 7">
+          </div>
+          <p id="addPlayerError" style="color:#a05050;font-size:0.85rem;min-height:18px;"></p>
+          <button id="saveAddPlayer" class="save-btn-floating" style="position:static;margin-top:4px;">add player</button>
+        </div>
+      </div>
     </div>
   </div>
 
-  <!-- ================== JAVASCRIPT ================== (FOR FAKE DATA -- NOT NEEDED)
-  <script>
-    const playersGrid = document.getElementById('playersGrid');
-    const playerDetailCard = document.getElementById('playerDetailCard');
-    const playerNameEl = document.getElementById('playerName');
-    const playerInfoEl = document.getElementById('playerInfo');
-    const featuredGameEl = document.getElementById('featuredGame');
-
-    let playersData = [
-      {name:'Linda', grade:12, position:'Middle, Left', featuredGame:'MHS VS LDH'},
-      {name:'John', grade:11, position:'Right', featuredGame:'LDH VS MHS'},
-      {name:'Alice', grade:10, position:'Setter', featuredGame:'MHS VS LDH'},
-      {name:'Bob', grade:12, position:'Libero', featuredGame:'LDH VS MHS'},
-      {name:'Eve', grade:11, position:'Middle', featuredGame:'MHS VS LDH'}
-    ];
-
-    // ================== DISPLAY PLAYERS ==================
-    function displayPlayers(players) {
-      playersGrid.innerHTML = '';
-      if (players.length === 0) {
-        playersGrid.innerHTML = '<p class="text-muted">No players match the filter.</p>';
-      }
-
-      players.forEach(player => {
-        const col = document.createElement('div');
-        col.className = 'col text-center';
-        col.innerHTML = `
-          <div class="player-square" style="cursor:pointer;"></div>
-          <p class="m-0 fw-bold">${player.name}</p>
-          <small>${player.position}</small>
-        `;
-        col.addEventListener('click', () => showPlayerDetail(player));
-        playersGrid.appendChild(col);
-      });
-
-      // Add Player card
-      const addCol = document.createElement('div');
-      addCol.className = 'col text-center';
-      addCol.innerHTML = `
-        <div class="player-square-add" style="cursor:pointer;">
-          <img src="../../assets/icons/upload_arrow.png" alt="add" style="width:40px;">
-        </div>
-        <p class="m-0 fw-bold">add player</p>
-        <small>&nbsp;</small>
-      `;
-      addCol.addEventListener('click', () => {
-        document.getElementById('addPlayerPopup').style.display = 'block';
-      });
-      playersGrid.appendChild(addCol);
-    }
-
-    displayPlayers(playersData);
-
-    function showPlayerDetail(player) {
-      playerDetailCard.style.display = 'block';
-      playerNameEl.textContent = player.name.toUpperCase();
-      playerInfoEl.innerHTML = `
-        <p>player</p>
-        <p>gr. ${player.grade}</p>
-        <p class="mt-3"><strong>positions:</strong><br>${player.position}</p>
-      `;
-      featuredGameEl.textContent = player.featuredGame || 'N/A';
-    }
-
-    // ================== SEARCH & FILTER ==================
-    document.getElementById('searchInput').addEventListener('input', filterPlayers);
-    const checkboxes = document.querySelectorAll('.position-filter');
-    checkboxes.forEach(cb => cb.addEventListener('change', filterPlayers));
-
-    function filterPlayers() {
-      const searchText = document.getElementById('searchInput').value.toLowerCase();
-      const selectedPositions = Array.from(checkboxes)
-                                     .filter(cb => cb.checked)
-                                     .map(cb => cb.value);
-
-      const filtered = playersData.filter(p => {
-        const positions = p.position.split(',').map(pos => pos.trim());
-        return p.name.toLowerCase().includes(searchText) &&
-               positions.some(pos => selectedPositions.includes(pos));
-      });
-      displayPlayers(filtered);
-    }
-
-    // ================== ADD PLAYER FORM ==================
-    document.getElementById('cancelAddPlayer').addEventListener('click', () => {
-      document.getElementById('addPlayerPopup').style.display = 'none';
-    });
-
-    document.getElementById('saveAddPlayer').addEventListener('click', () => {
-      const name = document.getElementById('newPlayerName').value.trim();
-      const grade = parseInt(document.getElementById('newPlayerGrade').value);
-      const positions = document.getElementById('newPlayerPositions').value.trim();
-
-      if (!name || isNaN(grade) || !positions) {
-        alert("Please fill in all fields correctly!");
-        return;
-      }
-
-      const newPlayer = {name, grade, position: positions, featuredGame: ''};
-      playersData.push(newPlayer);
-
-      // Clear form & hide popup
-      document.getElementById('newPlayerName').value = '';
-      document.getElementById('newPlayerGrade').value = '';
-      document.getElementById('newPlayerPositions').value = '';
-      document.getElementById('addPlayerPopup').style.display = 'none';
-
-      displayPlayers(playersData);
-    });
-  </script> -->
-  <script type="module" src="../../js/player.js"></script>
+  <script src="../../js/player.js"></script>
 </body>
 </html>

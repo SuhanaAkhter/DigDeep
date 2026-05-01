@@ -179,3 +179,22 @@ def edit_player(player_id):
         picture=data.get('picture')
     )
     return jsonify({'success': True})
+
+@player_bp.route('/add', methods=['POST'])
+def add_player():
+    if session.get('role') != 'coach':
+        return jsonify({'error': 'unauthorized'}), 403
+    db   = get_db()
+    data = request.get_json()
+    name   = data.get('name', '').strip()
+    if not name:
+        return jsonify({'error': 'name is required'}), 400
+    grade        = data.get('grade', '').strip() or None
+    position     = data.get('position', '').strip() or None
+    jersey       = data.get('jersey_number') or None
+    cursor = db.execute(
+        'INSERT INTO players (team_id, name, grade, position, jersey_number) VALUES (?, ?, ?, ?, ?)',
+        (TEAM_ID, name, grade, position, jersey)
+    )
+    db.commit()
+    return jsonify({'success': True, 'player_id': cursor.lastrowid})

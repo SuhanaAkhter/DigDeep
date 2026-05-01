@@ -7,36 +7,50 @@
  *  - Adding new players via prompt
  */
 
-// FIX: all code wrapped in DOMContentLoaded — previously globals ran before the DOM
-// was ready, causing null-reference errors on every querySelector call at the top level.
 document.addEventListener('DOMContentLoaded', () => {
 
-  const playersGrid      = document.getElementById('playersGrid');
-  const playerDetailCard = document.getElementById('playerDetailCard');
-  const playerNameEl     = document.getElementById('playerName');
-  const playerInfoEl     = document.getElementById('playerInfo');
-  const featuredGameEl   = document.getElementById('featuredGame');
-  const searchInput      = document.getElementById('searchInput');
-  const checkboxes       = document.querySelectorAll('.position-filter');
+  const playersGrid       = document.getElementById('playersGrid');
+  const playerDetailCard  = document.getElementById('playerDetailCard');
+  const playerNameEl      = document.getElementById('playerName');
+  const playerInfoEl      = document.getElementById('playerInfo');
+  const playerPicDisplay  = document.getElementById('playerPicDisplay');
+  const viewStatsBtn      = document.getElementById('viewStatsBtn');
+  const playerStatsPreview = document.getElementById('playerStatsPreview');
+  const searchInput       = document.getElementById('searchInput');
+  const checkboxes        = document.querySelectorAll('.position-filter');
 
-  let playersData = [];
+  // Add player modal elements
+  const addModal       = document.getElementById('addPlayerModal');
+  const closeAddPlayer = document.getElementById('closeAddPlayer');
+  const saveAddPlayer  = document.getElementById('saveAddPlayer');
+  const addPlayerError = document.getElementById('addPlayerError');
+
+  let playersData    = [];
+  let selectedPlayer = null;
+
+  // ── MODAL HELPERS ──────────────────────────────────────
+  function showModal(el) { el.style.display = 'flex'; }
+  function hideModal(el) { el.style.display = 'none'; }
+
+  if (closeAddPlayer) closeAddPlayer.addEventListener('click', () => hideModal(addModal));
+  addModal.addEventListener('click', e => { if (e.target === addModal) hideModal(addModal); });
 
   // ── FETCH PLAYERS ──────────────────────────────────────
   async function fetchPlayers() {
     try {
-      const response = await fetch('/api/players/');
-      if (!response.ok) throw new Error('failed to fetch players');
-      const data = await response.json();
-      playersData = data.map(player => ({
-        id:           player.id,
-        name:         player.name   || 'unnamed',
-        grade:        player.grade  || '—',
-        position:     player.position || '',
-        jersey:       player.jersey_number || '—'
+      const res  = await fetch('/api/players/');
+      if (!res.ok) throw new Error();
+      const data = await res.json();
+      playersData = data.map(p => ({
+        id:       p.id,
+        name:     p.name     || 'unnamed',
+        grade:    p.grade    || '—',
+        position: p.position || '',
+        jersey:   p.jersey_number || '—',
+        picture:  p.picture  || null
       }));
       displayPlayers(playersData);
-    } catch (err) {
-      console.error(err);
+    } catch {
       playersGrid.innerHTML = '<p class="text-danger">unable to load players.</p>';
     }
   }
@@ -45,7 +59,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function displayPlayers(players) {
     playersGrid.innerHTML = '';
 
-    // "Add Player" card
+    // Add player button
     const addCol = document.createElement('div');
     addCol.className = 'col text-center';
     addCol.innerHTML = `
@@ -54,14 +68,19 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
       <p class="m-0 fw-bold">add player</p>
     `;
-    // FIX: was re-registering a new click listener every time displayPlayers() ran
-    // (because it called getElementById each time). Attach directly to the element here.
-    addCol.querySelector('.player-square-add').addEventListener('click', showAddPlayerModal);
+    addCol.querySelector('.player-square-add').addEventListener('click', () => {
+      addPlayerError.textContent = '';
+      document.getElementById('newPlayerName').value     = '';
+      document.getElementById('newPlayerGrade').value    = '';
+      document.getElementById('newPlayerPosition').value = '';
+      document.getElementById('newPlayerJersey').value   = '';
+      showModal(addModal);
+    });
     playersGrid.appendChild(addCol);
 
-    if (players.length === 0) {
+    if (!players.length) {
       const msg = document.createElement('p');
-      msg.className = 'text-muted mt-2';
+      msg.className   = 'text-muted mt-2';
       msg.textContent = 'no players match the filter.';
       playersGrid.appendChild(msg);
       return;
@@ -69,10 +88,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     players.forEach(player => {
       const col = document.createElement('div');
-      col.className = 'col text-center';
+      col.className    = 'col text-center';
       col.style.cursor = 'pointer';
+
+      const picHtml = player.picture
+        ? `<img src="${player.picture}" style="width:100%;height:100%;object-fit:cover;border-radius:20px;">`
+        : '';
+
       col.innerHTML = `
-        <div class="player-square"></div>
+        <div class="player-square">${picHtml}</div>
         <p class="m-0 fw-bold">${player.name}</p>
         <small>${player.position || '—'}</small>
       `;
@@ -83,6 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // ── SHOW PLAYER DETAIL ─────────────────────────────────
   function showPlayerDetail(player) {
+    selectedPlayer = player;
     playerDetailCard.style.display = 'block';
     playerNameEl.textContent = player.name.toUpperCase();
     playerInfoEl.innerHTML = `
@@ -91,23 +116,88 @@ document.addEventListener('DOMContentLoaded', () => {
       <p>#${player.jersey}</p>
       <p class="mt-3"><strong>position:</strong><br>${player.position || '—'}</p>
     `;
-    if (featuredGameEl) featuredGameEl.textContent = '—';
+
+    // Show picture or placeholder
+    if (player.picture) {
+      playerPicDisplay.innerHTML = `
+        <img src="${player.picture}"
+             style="width:70px;height:70px;border-radius:50%;object-fit:cover;">`;
+    } else {
+      playerPicDisplay.innerHTML = `
+        <img src="/assets/icons/upload_arrow.png" style="width:30px;">`;
+    }
+
+    // Reset stats preview
+    playerStatsPreview.style.display = 'none';
+    viewStatsBtn.textContent = 'view stats';
   }
 
-  // ── FILTER PLAYERS ─────────────────────────────────────
+  // ── VIEW STATS BUTTON ──────────────────────────────────
+  if (viewStatsBtn) {
+    viewStatsBtn.addEventListener('click', async () => {
+      if (!selectedPlayer) return;
+
+      if (playerStatsPreview.style.display === 'none') {
+        viewStatsBtn.textContent = 'loading...';
+        try {
+          const res    = await fetch(`/api/stats/player/${selectedPlayer.id}/totals`);
+          const totals = await res.json();
+          document.getElementById('previewKills').textContent  = totals.total_kills  ?? '—';
+          document.getElementById('previewAces').textContent   = totals.total_aces   ?? '—';
+          document.getElementById('previewBlocks').textContent = totals.total_blocks ?? '—';
+          document.getElementById('previewDigs').textContent   = totals.total_digs   ?? '—';
+          playerStatsPreview.style.display = 'block';
+          viewStatsBtn.textContent = 'hide stats';
+        } catch {
+          viewStatsBtn.textContent = 'could not load';
+        }
+      } else {
+        playerStatsPreview.style.display = 'none';
+        viewStatsBtn.textContent = 'view stats';
+      }
+    });
+  }
+
+  // ── ADD PLAYER ─────────────────────────────────────────
+  if (saveAddPlayer) {
+    saveAddPlayer.addEventListener('click', async () => {
+      const name     = document.getElementById('newPlayerName').value.trim();
+      const grade    = document.getElementById('newPlayerGrade').value.trim();
+      const position = document.getElementById('newPlayerPosition').value.trim();
+      const jersey   = document.getElementById('newPlayerJersey').value.trim();
+
+      if (!name) { addPlayerError.textContent = 'name is required.'; return; }
+
+      try {
+        const res  = await fetch('/api/players/add', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, grade, position, jersey_number: jersey || null })
+        });
+        const data = await res.json();
+        if (data.success) {
+          hideModal(addModal);
+          fetchPlayers();
+        } else {
+          addPlayerError.textContent = data.error || 'could not add player.';
+        }
+      } catch {
+        addPlayerError.textContent = 'network error — please try again.';
+      }
+    });
+  }
+
+  // ── FILTER ─────────────────────────────────────────────
   function filterPlayers() {
-    const searchText       = searchInput.value.toLowerCase();
+    const searchText        = searchInput.value.toLowerCase();
     const selectedPositions = Array.from(checkboxes)
                                    .filter(cb => cb.checked)
                                    .map(cb => cb.value);
 
     const filtered = playersData.filter(p => {
       const nameMatch = p.name.toLowerCase().includes(searchText);
-
-      // FIX: position can be null/empty — guard before calling .split()
       if (!p.position) return nameMatch && selectedPositions.length === 0;
-
-      const positions = p.position.split(',').map(pos => pos.trim());
+      const positions = p.position.split(',').map(x => x.trim());
       const posMatch  = selectedPositions.length === 0 ||
                         positions.some(pos => selectedPositions.includes(pos));
       return nameMatch && posMatch;
@@ -116,33 +206,6 @@ document.addEventListener('DOMContentLoaded', () => {
     displayPlayers(filtered);
   }
 
-  // ── ADD PLAYER MODAL ───────────────────────────────────
-  function showAddPlayerModal() {
-    const name = prompt('enter player name:');
-    if (!name || !name.trim()) return;
-
-    const grade = prompt('enter player grade:');
-    if (!grade) return;
-
-    const position = prompt('enter position (e.g. Middle, Setter):');
-    if (!position) return;
-
-    // FIX: removed addPlayerToBackend() POST call — there is no POST /api/players/ route
-    // on the backend (only GET and PUT). Adding a player requires an account to be linked,
-    // so for now we show the new entry locally and remind the coach to have the player sign up.
-    const tempPlayer = {
-      id:       Date.now(),
-      name:     name.trim(),
-      grade:    grade.trim(),
-      position: position.trim(),
-      jersey:   '—'
-    };
-    playersData.push(tempPlayer);
-    displayPlayers(playersData);
-    alert(`player "${tempPlayer.name}" added locally.\nTo link them fully, have them create an account and you can assign their profile from the backend.`);
-  }
-
-  // ── EVENT LISTENERS ────────────────────────────────────
   if (searchInput) searchInput.addEventListener('input', filterPlayers);
   checkboxes.forEach(cb => cb.addEventListener('change', filterPlayers));
 
