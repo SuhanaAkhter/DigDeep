@@ -44,18 +44,52 @@
             </div>
           </div>
         </div>
+
+        <!-- Per-game breakdown table -->
+        {% if game_rows %}
+        <h2 class="stats-header mt-5" style="font-size:1.8rem;">game history</h2>
+        <div style="overflow-x:auto;">
+          <table style="width:100%; border-collapse:collapse; color:var(--text-brown);">
+            <thead>
+              <tr style="border-bottom:2px solid var(--text-brown); font-weight:900;">
+                <th style="padding:10px 8px; text-align:left;">opponent</th>
+                <th style="padding:10px 8px; text-align:center;">date</th>
+                <th style="padding:10px 8px; text-align:center;">kills</th>
+                <th style="padding:10px 8px; text-align:center;">aces</th>
+                <th style="padding:10px 8px; text-align:center;">blocks</th>
+                <th style="padding:10px 8px; text-align:center;">digs</th>
+                <th style="padding:10px 8px; text-align:center;">assists</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in game_rows %}
+              <tr style="border-bottom:1px solid rgba(107,91,78,0.2);">
+                <td style="padding:10px 8px;">vs {{ row.opponent }}</td>
+                <td style="padding:10px 8px; text-align:center;">{{ row.game_date or '—' }}</td>
+                <td style="padding:10px 8px; text-align:center;">{{ row.kills }}</td>
+                <td style="padding:10px 8px; text-align:center;">{{ row.aces }}</td>
+                <td style="padding:10px 8px; text-align:center;">{{ row.blocks }}</td>
+                <td style="padding:10px 8px; text-align:center;">{{ row.digs }}</td>
+                <td style="padding:10px 8px; text-align:center;">{{ row.assists }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+        {% endif %}
       </div>
 
       <div class="col-md-3 offset-md-1">
         <div class="player-detail-card">
           <h2 class="linda-title">
-            {{ (player.name or 'player') | upper if player else 'PLAYER' }}
+            {{ (player.name or 'player')|upper if player else 'PLAYER' }}
           </h2>
           <div class="d-flex justify-content-between align-items-start">
             <div class="linda-info">
               <p>player</p>
               {% if player and player.grade %}<p>gr. {{ player.grade }}</p>{% endif %}
-              <p class="mt-3"><strong>positions:</strong><br>
+              {% if player and player.jersey_number %}<p>#{{ player.jersey_number }}</p>{% endif %}
+              <p class="mt-3"><strong>position:</strong><br>
                 {{ player.position or '—' if player else '—' }}
               </p>
             </div>
@@ -72,12 +106,12 @@
           <div class="featured-game-mini mt-4">
             <p class="mb-1">best performance:</p>
             {% if best_game %}
-              <p class="small text-uppercase" style="color: var(--pill-pink);">
+              <p class="small text-uppercase" style="color:var(--pill-pink);">
                 vs {{ best_game.opponent }} — {{ best_game.game_date or '' }}
               </p>
-              <div class="stat-card olive" style="min-height: 120px; border-radius: 15px;">
-                <p class="stat-label" style="font-size: 1rem;">kills</p>
-                <div class="stat-value" style="font-size: 3rem;">{{ best_game.kills }}</div>
+              <div class="stat-card olive" style="min-height:120px;border-radius:15px;">
+                <p class="stat-label" style="font-size:1rem;">kills</p>
+                <div class="stat-value" style="font-size:3rem;">{{ best_game.kills }}</div>
               </div>
             {% else %}
               <p style="opacity:0.7;">no games yet</p>

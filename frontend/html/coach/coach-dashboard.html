@@ -18,7 +18,12 @@
           <h2 style="font-size: 2.5rem;">welcome to digdeep....</h2>
         </div>
         <div class="profile-group">
-          <div class="profile-circle"></div>
+          {% if current_user_picture %}
+            <img src="{{ current_user_picture }}" alt="profile"
+                 style="width:120px;height:120px;border-radius:50%;object-fit:cover;">
+          {% else %}
+            <div class="profile-circle"></div>
+          {% endif %}
           <div>
             <h3 style="font-weight: bold; margin-bottom: 0;">{{ coach_name }}</h3>
             <p>coach</p>
@@ -32,7 +37,7 @@
           <a href="manage-games" style="color: inherit; text-decoration: underline;">
             <p>view all games</p>
           </a>
-          
+
           {% if games %}
             {% for game in games[:2] %}
             <div class="game-card">

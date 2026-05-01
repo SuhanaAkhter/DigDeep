@@ -20,7 +20,7 @@
         <div class="profile-group">
           {% if player and player.picture %}
             <img src="{{ player.picture }}" alt="profile"
-                 style="width:120px; height:120px; border-radius:50%; object-fit:cover;">
+                 style="width:120px;height:120px;border-radius:50%;object-fit:cover;">
           {% else %}
             <div class="profile-circle"></div>
           {% endif %}
@@ -39,7 +39,6 @@
           <a href="team-stats" style="color: inherit; text-decoration: underline;">
             <p>view all games</p>
           </a>
-
           {% if games %}
             {% for game in games[:2] %}
             <div class="game-card">
@@ -54,7 +53,6 @@
       </div>
     </div>
   </div>
-  
   <script src="/js/dashboard-scores.js"></script>
 </body>
 </html>
