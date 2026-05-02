@@ -1,9 +1,23 @@
-/* Stats Page Specifics */
+/**
+ * @file team-stats.css
+ * @description Styles specific to the team statistics dashboard page.
+ *
+ * Provides colour tokens for the three stat-card variants (olive, pink, brown),
+ * the stats page header, individual stat card layout, and an empty nav pill
+ * placeholder used in the navbar.
+ *
+ * Depends on the shared colour tokens defined in dashboard.css.
+ */
+
+/* ── PAGE-LEVEL COLOUR TOKENS ────────────────────────────────────────────── */
+
 :root {
     --stat-olive: #929375;
-    --stat-pink: #D9AEAE;
+    --stat-pink:  #D9AEAE;
     --stat-brown: #B0947B;
 }
+
+/* ── PAGE HEADER ─────────────────────────────────────────────────────────── */
 
 .stats-header {
     font-size: 3.5rem;
@@ -11,6 +25,8 @@
     color: var(--text-brown);
     margin-bottom: 20px;
 }
+
+/* ── STAT CARDS ──────────────────────────────────────────────────────────── */
 
 .stat-card {
     border-radius: 25px;
@@ -23,9 +39,9 @@
     justify-content: center;
 }
 
-/* Color Variations */
+/** Colour variants applied to individual stat cards. */
 .olive { background-color: var(--stat-olive); }
-.pink { background-color: var(--stat-pink); }
+.pink  { background-color: var(--stat-pink);  }
 .brown { background-color: var(--stat-brown); }
 
 .stat-label {
@@ -40,7 +56,9 @@
     line-height: 1;
 }
 
-/* Custom empty pill for the navbar center */
+/* ── NAVBAR PLACEHOLDER ──────────────────────────────────────────────────── */
+
+/** Semi-transparent empty pill used as a spacer in the stats page navbar. */
 .nav-item-custom-empty {
     background-color: var(--white);
     opacity: 0.5;

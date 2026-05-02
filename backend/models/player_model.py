@@ -1,61 +1,158 @@
 """
 player_model.py
-Handles all database reads and writes for player profiles.
-All methods return plain dicts or lists of dicts so routes can pass them directly to JSON responses.
+===============
+Database access layer for the ``players`` table.
+
+Player profiles store biographical and roster information (name, grade,
+jersey number, position, and profile picture).  Each player row is linked to
+a ``users`` row via ``user_id``, which holds the login credentials.
+
+All public functions accept an open ``sqlite3.Connection`` as their first
+argument and return plain ``dict`` objects (or ``None``) so that route
+handlers can serialise results directly to JSON without any additional
+transformation.
 """
 
-def get_all_players(db, team_id):
+import sqlite3
+
+
+def get_all_players(db: sqlite3.Connection, team_id: int) -> list[dict]:
+    """Return every player on a team ordered alphabetically by name.
+
+    Used by the coach dashboard and the manage-players page to build the
+    player roster list.
+
+    Parameters
+    ----------
+    db:
+        An open, request-scoped database connection.
+    team_id:
+        Primary key of the team whose players should be returned.
+
+    Returns
+    -------
+    list[dict]
+        A list of player profile dicts, each containing the keys ``id``,
+        ``name``, ``grade``, ``jersey_number``, ``position``, and
+        ``picture``.  Returns an empty list when the team has no players.
     """
-    Returns all players on a given team with their basic profile info.
-    Used by the coach dashboard and manage-players page.
-    """
-    rows = db.execute("""
+    rows = db.execute(
+        """
         SELECT p.id, p.name, p.grade, p.jersey_number, p.position, p.picture
-        FROM players p
-        WHERE p.team_id = ?
-        ORDER BY p.name
-    """, (team_id,)).fetchall()
+        FROM   players p
+        WHERE  p.team_id = ?
+        ORDER  BY p.name
+        """,
+        (team_id,),
+    ).fetchall()
     return [dict(row) for row in rows]
 
 
-def get_player_by_id(db, player_id):
+def get_player_by_id(db: sqlite3.Connection, player_id: int) -> dict | None:
+    """Return the full profile for a single player, including their email.
+
+    Used by the player detail card on the manage-players page when the coach
+    expands a specific player's row.
+
+    Parameters
+    ----------
+    db:
+        An open, request-scoped database connection.
+    player_id:
+        Primary key of the player to retrieve.
+
+    Returns
+    -------
+    dict or None
+        A dict with keys ``id``, ``name``, ``grade``, ``jersey_number``,
+        ``position``, ``picture``, and ``email``, or ``None`` if no matching
+        player exists.
     """
-    Returns full profile for a single player including their user email.
-    Used by the player detail card in manage-players.
-    """
-    row = db.execute("""
+    row = db.execute(
+        """
         SELECT p.id, p.name, p.grade, p.jersey_number, p.position, p.picture,
                u.email
-        FROM players p
-        JOIN users u ON u.id = p.user_id
-        WHERE p.id = ?
-    """, (player_id,)).fetchone()
+        FROM   players p
+        JOIN   users   u ON u.id = p.user_id
+        WHERE  p.id = ?
+        """,
+        (player_id,),
+    ).fetchone()
     return dict(row) if row else None
 
 
-def get_player_by_user_id(db, user_id):
+def get_player_by_user_id(db: sqlite3.Connection, user_id: int) -> dict | None:
+    """Return the player profile linked to a given user account.
+
+    Used on the player dashboard to load the currently logged-in player's
+    own profile without requiring a separate player-id lookup.
+
+    Parameters
+    ----------
+    db:
+        An open, request-scoped database connection.
+    user_id:
+        Primary key of the ``users`` row whose linked player should be
+        returned.
+
+    Returns
+    -------
+    dict or None
+        A dict with keys ``id``, ``name``, ``grade``, ``jersey_number``,
+        ``position``, ``picture``, and ``team_id``, or ``None`` if the user
+        has no associated player profile.
     """
-    Returns the player profile linked to a given user account.
-    Used on the player dashboard to load the logged-in player's own info.
-    """
-    row = db.execute("""
+    row = db.execute(
+        """
         SELECT p.id, p.name, p.grade, p.jersey_number, p.position, p.picture,
                p.team_id
-        FROM players p
-        WHERE p.user_id = ?
-    """, (user_id,)).fetchone()
+        FROM   players p
+        WHERE  p.user_id = ?
+        """,
+        (user_id,),
+    ).fetchone()
     return dict(row) if row else None
 
 
-def update_player(db, player_id, name=None, grade=None, jersey_number=None,
-                  position=None, picture=None):
+def update_player(
+    db: sqlite3.Connection,
+    player_id: int,
+    name: str | None = None,
+    grade: str | None = None,
+    jersey_number: int | None = None,
+    position: str | None = None,
+    picture: str | None = None,
+) -> None:
+    """Update one or more fields on a player profile.
+
+    Only the keyword arguments that are explicitly provided (i.e. not
+    ``None``) are written to the database.  Passing no keyword arguments
+    other than ``player_id`` is a no-op.
+
+    Used by the coach on the manage-players page when editing a player's
+    details.
+
+    Parameters
+    ----------
+    db:
+        An open, request-scoped database connection.
+    player_id:
+        Primary key of the player row to update.
+    name:
+        Updated display name, or ``None`` to leave unchanged.
+    grade:
+        Updated school grade/year, or ``None`` to leave unchanged.
+    jersey_number:
+        Updated jersey number, or ``None`` to leave unchanged.
+    position:
+        Updated position string (e.g. ``"Setter"``), or ``None`` to leave
+        unchanged.
+    picture:
+        Updated picture URL (relative path under ``/assets/uploads/``), or
+        ``None`` to leave unchanged.
     """
-    Updates whichever fields are provided for a given player.
-    Fields passed as None are left unchanged.
-    Used by the coach on the manage-players page.
-    """
-    fields = []
-    values = []
+    fields: list[str] = []
+    values: list = []
 
     if name is not None:
         fields.append("name = ?")

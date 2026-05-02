@@ -1,12 +1,24 @@
-/* Shared Dashboard Styles */
+/**
+ * @file dashboard.css
+ * @description Shared styles for all authenticated dashboard pages.
+ *
+ * Provides the global colour palette, navigation pill and dropdown styles,
+ * profile section layout, featured-games sidebar, and the profile-picture
+ * dropdown component.
+ */
+
+/* ── COLOUR PALETTE ───────────────────────────────────────────────────────── */
+
 :root {
-    --bg-cream: #F5EBD7;
-    --pill-pink: #E5B7B7;
-    --card-pink: #D9AEAE;
-    --text-brown: #6B5B4E;
-    --white: #FFFFFF;
-    --dropdown-tan: #D6C2A7;
+    --bg-cream:      #F5EBD7;
+    --pill-pink:     #E5B7B7;
+    --card-pink:     #D9AEAE;
+    --text-brown:    #6B5B4E;
+    --white:         #FFFFFF;
+    --dropdown-tan:  #D6C2A7;
 }
+
+/* ── BASE ────────────────────────────────────────────────────────────────── */
 
 body {
     background-color: var(--bg-cream);
@@ -15,7 +27,8 @@ body {
     text-transform: lowercase;
 }
 
-/* Navbar */
+/* ── NAVIGATION ──────────────────────────────────────────────────────────── */
+
 .nav-pill-container {
     background-color: var(--pill-pink);
     border-radius: 50px;
@@ -24,7 +37,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
     width: 100%;
 }
 
@@ -46,7 +59,14 @@ body {
     margin-right: 10px;
 }
 
-/* Dropdowns */
+.navbar-link {
+    color: var(--text-brown);
+    display: block;
+    text-decoration: none;
+}
+
+/* ── DROPDOWNS ───────────────────────────────────────────────────────────── */
+
 .dropdown-menu-custom {
     display: none;
     position: absolute;
@@ -57,17 +77,11 @@ body {
     min-width: 160px;
     padding: 10px;
     z-index: 1000;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .nav-item-custom:hover .dropdown-menu-custom {
     display: block;
-}
-
-.navbar-link {
-    color: var(--text-brown);
-    display: block;
-    text-decoration: none;
 }
 
 .dropdown-item-custom {
@@ -81,7 +95,8 @@ body {
     text-decoration: underline;
 }
 
-/* Profile Section */
+/* ── PROFILE SECTION ─────────────────────────────────────────────────────── */
+
 .profile-group {
     margin-top: 5vh;
     display: flex;
@@ -97,7 +112,8 @@ body {
     border-radius: 50%;
 }
 
-/* Sidebar: Featured Games */
+/* ── FEATURED GAMES SIDEBAR ──────────────────────────────────────────────── */
+
 .featured-sidebar {
     background-color: var(--card-pink);
     border-radius: 25px;
@@ -119,13 +135,15 @@ body {
 }
 
 .game-title { font-weight: bold; }
+
 .game-score {
     font-size: 3rem;
     font-weight: 900;
     line-height: 1;
 }
 
-/* Layout */
+/* ── LAYOUT UTILITIES ────────────────────────────────────────────────────── */
+
 .container-fluid.px-5 {
     padding-left: 5% !important;
     padding-right: 5% !important;
@@ -136,8 +154,8 @@ body {
     padding-left: 20px;
 }
 
+/* ── PROFILE PICTURE DROPDOWN ────────────────────────────────────────────── */
 
-/* ── Profile Picture Dropdown ── */
 .pfp-dropdown-wrapper {
     position: relative;
     display: inline-block;
@@ -171,7 +189,7 @@ body {
     padding: 8px;
     padding-top: 14px;
     z-index: 1000;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 .pfp-dropdown-wrapper:hover .pfp-dropdown-menu {

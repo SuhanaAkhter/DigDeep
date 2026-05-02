@@ -1,3 +1,13 @@
+/**
+ * @file permissions.css
+ * @description Styles for the permissions management page.
+ *
+ * Covers the page title, permission cards, individual permission rows,
+ * and the custom toggle switch component.
+ */
+
+/* ── PAGE HEADER ─────────────────────────────────────────────────────────── */
+
 .permissions-title {
     font-size: 2.5rem;
     font-weight: 900;
@@ -6,12 +16,16 @@
     color: var(--text-brown);
 }
 
+/* ── PERMISSIONS CARD ────────────────────────────────────────────────────── */
+
 .permissions-card {
     background-color: var(--bg-cream);
     border-radius: 20px;
     padding: 30px;
     min-height: 280px;
 }
+
+/* ── PERMISSION ROW ──────────────────────────────────────────────────────── */
 
 .permission-row {
     display: flex;
@@ -22,7 +36,13 @@
     color: var(--text-brown);
 }
 
-/* Toggle Switch */
+/* ── TOGGLE SWITCH ───────────────────────────────────────────────────────── */
+
+/**
+ * Custom checkbox-based toggle switch.
+ * The actual <input type="checkbox"> is hidden; the visual track and
+ * knob are rendered via the .toggle-slider pseudo-element.
+ */
 .toggle-switch {
     position: relative;
     width: 52px;
@@ -36,6 +56,7 @@
     height: 0;
 }
 
+/** Toggle track — unchecked state (muted tan). */
 .toggle-slider {
     position: absolute;
     inset: 0;
@@ -45,6 +66,7 @@
     transition: background-color 0.3s ease;
 }
 
+/** Toggle knob. */
 .toggle-slider::before {
     content: '';
     position: absolute;
@@ -57,10 +79,12 @@
     transition: transform 0.3s ease;
 }
 
+/** Toggle track — checked state (muted green). */
 .toggle-switch input:checked + .toggle-slider {
     background-color: #7a9e7e;
 }
 
+/** Slide knob to the right when checked. */
 .toggle-switch input:checked + .toggle-slider::before {
     transform: translateX(24px);
 }

@@ -1,55 +1,147 @@
+/**
+ * @file game-stats.js
+ * @description Manages the game statistics page UI.
+ *
+ * Responsibilities:
+ *  - Loading and rendering the games grid
+ *  - Displaying per-game set scores on each game tile
+ *  - View modal: shows aggregated kills, aces, blocks, featured player, and set scores
+ *  - Edit modal: allows updating per-set scores and per-player statistics
+ *  - Add game modal: creates a new game record and opens the edit modal
+ *  - Delete game: confirms and permanently removes a game record
+ *  - Context menu: right-click access to view, edit, and delete actions
+ */
+
 document.addEventListener('DOMContentLoaded', () => {
 
-  // ================= DOM REFERENCES =================
-  const gamesGrid        = document.getElementById('gamesGrid');
-  const featuredList     = document.getElementById('featuredGamesList');
+  // ── DOM REFERENCES ────────────────────────────────────────────────────────
 
-  const addModal         = document.getElementById('addGameModal');
+  /** @type {HTMLElement} Grid container for all game tiles. */
+  const gamesGrid = document.getElementById('gamesGrid');
+
+  /** @type {HTMLElement} Sidebar list element for featured games. */
+  const featuredList = document.getElementById('featuredGamesList');
+
+  /** @type {HTMLElement} Modal overlay for adding a new game. */
+  const addModal = document.getElementById('addGameModal');
+
+  /** @type {HTMLInputElement} Text input for the opponent's name in the add-game modal. */
   const newOpponentInput = document.getElementById('newOpponentInput');
-  const opponentPreview  = document.getElementById('opponentPreview');
-  const saveNewGameBtn   = document.getElementById('saveNewGameBtn');
-  const closeAddModal    = document.getElementById('closeAddModal');
 
-  const viewModal        = document.getElementById('viewGameModal');
-  const viewOpponent     = document.getElementById('viewOpponent');
-  const viewKills        = document.getElementById('viewKills');
-  const viewAces         = document.getElementById('viewAces');
-  const viewBlocks       = document.getElementById('viewBlocks');
-  const viewFeatured     = document.getElementById('viewFeatured');
-  const setSidebar       = document.getElementById('setSidebar');
-  const openEditBtn      = document.getElementById('openEditBtn');
-  const closeViewModal   = document.getElementById('closeViewModal');
+  /** @type {HTMLElement} Live preview of the opponent name within the add-game modal. */
+  const opponentPreview = document.getElementById('opponentPreview');
 
-  const editModal        = document.getElementById('editGameModal');
-  const editOpponent     = document.getElementById('editOpponent');
-  const editModalBody    = document.getElementById('editModalBody');
-  const closeEditModal   = document.getElementById('closeEditModal');
+  /** @type {HTMLButtonElement} Button that submits the new game form. */
+  const saveNewGameBtn = document.getElementById('saveNewGameBtn');
 
-  const deleteModal      = document.getElementById('deleteConfirmModal');
+  /** @type {HTMLButtonElement} Button that closes the add-game modal. */
+  const closeAddModal = document.getElementById('closeAddModal');
+
+  /** @type {HTMLElement} Modal overlay for viewing a game's stats summary. */
+  const viewModal = document.getElementById('viewGameModal');
+
+  /** @type {HTMLElement} Element displaying the opponent name in the view modal. */
+  const viewOpponent = document.getElementById('viewOpponent');
+
+  /** @type {HTMLElement} Element displaying total kills in the view modal. */
+  const viewKills = document.getElementById('viewKills');
+
+  /** @type {HTMLElement} Element displaying total aces in the view modal. */
+  const viewAces = document.getElementById('viewAces');
+
+  /** @type {HTMLElement} Element displaying total blocks in the view modal. */
+  const viewBlocks = document.getElementById('viewBlocks');
+
+  /** @type {HTMLElement} Element displaying the featured (highest-kills) player. */
+  const viewFeatured = document.getElementById('viewFeatured');
+
+  /** @type {HTMLElement} Sidebar container for per-set score boxes in the view modal. */
+  const setSidebar = document.getElementById('setSidebar');
+
+  /** @type {HTMLButtonElement} Button that transitions from the view modal to the edit modal. */
+  const openEditBtn = document.getElementById('openEditBtn');
+
+  /** @type {HTMLButtonElement} Button that closes the view modal. */
+  const closeViewModal = document.getElementById('closeViewModal');
+
+  /** @type {HTMLElement} Modal overlay for editing a game's set scores and player stats. */
+  const editModal = document.getElementById('editGameModal');
+
+  /** @type {HTMLElement} Element displaying the opponent name in the edit modal. */
+  const editOpponent = document.getElementById('editOpponent');
+
+  /** @type {HTMLElement} Container for the dynamically built edit form. */
+  const editModalBody = document.getElementById('editModalBody');
+
+  /** @type {HTMLButtonElement} Button that closes the edit modal. */
+  const closeEditModal = document.getElementById('closeEditModal');
+
+  /** @type {HTMLElement} Modal overlay for the delete-confirmation prompt. */
+  const deleteModal = document.getElementById('deleteConfirmModal');
+
+  /** @type {HTMLButtonElement} Button that confirms a game deletion. */
   const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
-  const cancelDeleteBtn  = document.getElementById('cancelDeleteBtn');
+
+  /** @type {HTMLButtonElement} Button that cancels a pending deletion. */
+  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+
+  /** @type {HTMLButtonElement} Button that closes the delete-confirmation modal. */
   const closeDeleteModal = document.getElementById('closeDeleteModal');
 
-  const contextMenu          = document.getElementById('gameContextMenu');
-  const ctxViewStats         = document.getElementById('ctxViewStats');
-  const ctxEditGame          = document.getElementById('ctxEditGame');
-  const ctxDeleteGame        = document.getElementById('ctxDeleteGame');
+  /** @type {HTMLElement} Custom right-click context menu element. */
+  const contextMenu = document.getElementById('gameContextMenu');
 
-  // ================= STATE =================
-  let currentGame     = null;
+  /** @type {HTMLElement} "View stats" item in the context menu. */
+  const ctxViewStats = document.getElementById('ctxViewStats');
+
+  /** @type {HTMLElement} "Edit game" item in the context menu. */
+  const ctxEditGame = document.getElementById('ctxEditGame');
+
+  /** @type {HTMLElement} "Delete game" item in the context menu. */
+  const ctxDeleteGame = document.getElementById('ctxDeleteGame');
+
+  // ── STATE ─────────────────────────────────────────────────────────────────
+
+  /**
+   * The game object most recently targeted by a click or context-menu action.
+   * @type {{ id: number, opponent: string } | null}
+   */
+  let currentGame = null;
+
+  /**
+   * The ID of the game awaiting deletion confirmation.
+   * @type {number | null}
+   */
   let pendingDeleteId = null;
+
+  /**
+   * Colour class names cycled across game tiles.
+   * @type {string[]}
+   */
   const colours = ['pink', 'olive', 'brown'];
 
-  // ================= MODAL HELPERS =================
+  // ── MODAL HELPERS ─────────────────────────────────────────────────────────
+
+  /**
+   * Displays a modal overlay using flex layout.
+   * @param {HTMLElement} el - The modal overlay element to show.
+   */
   function showModal(el) { el.style.display = 'flex'; }
+
+  /**
+   * Hides a modal overlay.
+   * @param {HTMLElement} el - The modal overlay element to hide.
+   */
   function hideModal(el) { el.style.display = 'none'; }
 
+  // Close any modal when the user clicks its backdrop.
   document.querySelectorAll('.custom-modal').forEach(modal => {
     modal.addEventListener('click', e => {
       if (e.target === modal) hideModal(modal);
     });
   });
 
+  // Close all modals and the context menu when the Escape key is pressed.
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       document.querySelectorAll('.custom-modal').forEach(m => hideModal(m));
@@ -57,7 +149,16 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ================= CONTEXT MENU =================
+  // ── CONTEXT MENU ──────────────────────────────────────────────────────────
+
+  /**
+   * Positions and displays the context menu at the given coordinates,
+   * binding it to the specified game.
+   *
+   * @param {number} x - Horizontal position in page pixels.
+   * @param {number} y - Vertical position in page pixels.
+   * @param {{ id: number, opponent: string }} game - The game the menu applies to.
+   */
   function showContextMenu(x, y, game) {
     currentGame = game;
     contextMenu.style.left    = `${x}px`;
@@ -65,10 +166,12 @@ document.addEventListener('DOMContentLoaded', () => {
     contextMenu.style.display = 'block';
   }
 
+  /** Hides the context menu. */
   function hideContextMenu() {
     contextMenu.style.display = 'none';
   }
 
+  // Dismiss the context menu on any document click.
   document.addEventListener('click', () => hideContextMenu());
 
   ctxViewStats.addEventListener('click', () => {
@@ -87,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showModal(deleteModal);
   });
 
-  // Right-click on a game box
+  // Trigger the context menu on right-click over a game tile.
   document.getElementById('gamesGrid').addEventListener('contextmenu', e => {
     const box = e.target.closest('.game-box');
     if (!box || box.classList.contains('add-btn')) return;
@@ -97,7 +200,15 @@ document.addEventListener('DOMContentLoaded', () => {
     showContextMenu(e.pageX, e.pageY, currentGame);
   });
 
-  // ================= LOAD & RENDER GAMES =================
+  // ── LOAD & RENDER GAMES ───────────────────────────────────────────────────
+
+  /**
+   * Fetches all games from the API and renders both the main grid
+   * and the featured-games sidebar.
+   *
+   * @async
+   * @returns {Promise<void>}
+   */
   async function loadGames() {
     try {
       const res = await fetch('/api/games/');
@@ -110,6 +221,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  /**
+   * Clears the games grid and re-renders one tile per game, followed by
+   * an "add game" tile. Each game tile asynchronously populates its score.
+   *
+   * @param {Array<{ id: number, opponent: string }>} games - Games to render.
+   */
   function renderGames(games) {
     gamesGrid.innerHTML = '';
 
@@ -135,7 +252,6 @@ document.addEventListener('DOMContentLoaded', () => {
       loadGameTileStat(game.id);
     });
 
-    // + add button
     const addBox = document.createElement('div');
     addBox.className = 'game-box add-btn';
     addBox.textContent = '+';
@@ -147,7 +263,14 @@ document.addEventListener('DOMContentLoaded', () => {
     gamesGrid.appendChild(addBox);
   }
 
-  // Loads the value shown on a game tile — either a specific stat or the total score
+  /**
+   * Fetches the set data for a single game and updates its tile with the
+   * cumulative MHS vs opponent score. Displays "—" if no sets are recorded.
+   *
+   * @async
+   * @param {number} gameId - ID of the game whose score should be displayed.
+   * @returns {Promise<void>}
+   */
   async function loadGameTileStat(gameId) {
     const el = document.getElementById(`score-${gameId}`);
     if (!el) return;
@@ -163,7 +286,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Sidebar shows total score (sets won)
+  /**
+   * Renders the two most recent games in the featured-games sidebar,
+   * each showing the cumulative set score.
+   *
+   * @async
+   * @param {Array<{ id: number, opponent: string }>} games - Full list of games.
+   * @returns {Promise<void>}
+   */
   async function renderFeaturedSidebar(games) {
     featuredList.innerHTML = '';
     for (const game of games.slice(0, 2)) {
@@ -190,7 +320,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!games.length) featuredList.innerHTML = '<p style="opacity:0.7;">no games yet</p>';
   }
 
-  // ================= VIEW MODAL =================
+  // ── VIEW MODAL ────────────────────────────────────────────────────────────
+
+  /**
+   * Opens the view modal for the given game. Displays placeholder values
+   * while data loads, then populates total kills, aces, blocks, the
+   * featured player (highest kills), and a set-score sidebar.
+   *
+   * @async
+   * @param {{ id: number, opponent: string }} game - The game to display.
+   * @returns {Promise<void>}
+   */
   async function openViewModal(game) {
     currentGame = game;
     viewOpponent.textContent = game.opponent.toUpperCase();
@@ -201,7 +341,6 @@ document.addEventListener('DOMContentLoaded', () => {
     setSidebar.innerHTML = '';
     showModal(viewModal);
 
-    // Load set scores and player stats in parallel
     try {
       const [statsRes, setsRes] = await Promise.all([
         fetch(`/api/stats/game/${game.id}`),
@@ -210,7 +349,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const stats = await statsRes.json();
       const sets  = await setsRes.json();
 
-      // Render set score boxes in sidebar
       const setCount = Math.max(sets.length, 3);
       for (let i = 1; i <= setCount; i++) {
         const setData = sets.find(s => s.set_number === i) || { mhs_score: 0, opp_score: 0 };
@@ -258,12 +396,25 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   closeViewModal.addEventListener('click', () => hideModal(viewModal));
+
   openEditBtn.addEventListener('click', () => {
     hideModal(viewModal);
     openEditModal(currentGame);
   });
 
-  // ================= EDIT MODAL =================
+  // ── EDIT MODAL ────────────────────────────────────────────────────────────
+
+  /**
+   * Opens the edit modal for the given game. Fetches all players, existing
+   * player stats, and existing set scores in parallel, then builds:
+   *  - A set-score editor with increment/decrement controls for each set
+   *  - A player statistics table with numeric inputs for kills, assists,
+   *    aces, blocks, and digs
+   *
+   * @async
+   * @param {{ id: number, opponent: string }} game - The game to edit.
+   * @returns {Promise<void>}
+   */
   async function openEditModal(game) {
     currentGame = game;
     editOpponent.textContent = game.opponent.toUpperCase();
@@ -287,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
 
-    // Build set score editors (3 sets by default, show up to however many exist or 3)
+    // Render at least 3 set editors, expanding if more sets already exist.
     const setCount = Math.max(existingSets.length, 3);
     let setsHtml = `
       <div style="margin-bottom:18px;">
@@ -327,7 +478,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     setsHtml += `</div></div>`;
 
-    // Player stats table
     const tableHtml = `
       <div style="overflow-y:auto; max-height:250px;">
         <table style="width:100%; color:#F5EBD7; border-collapse:collapse;">
@@ -362,12 +512,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     editModalBody.innerHTML = setsHtml + tableHtml;
 
-    // Wire up ▲▼ buttons
+    // Wire up set score increment/decrement buttons.
     editModalBody.querySelectorAll('.set-adj-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const setNum = btn.dataset.set;
-        const side   = btn.dataset.side; // 'mhs' or 'opp'
-        const dir    = btn.dataset.dir;  // 'up' or 'down'
+        const side   = btn.dataset.side;
+        const dir    = btn.dataset.dir;
         const valEl  = document.getElementById(`set-${setNum}-${side}`);
         let val = parseInt(valEl.textContent) || 0;
         val = dir === 'up' ? val + 1 : Math.max(0, val - 1);
@@ -380,8 +530,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
   closeEditModal.addEventListener('click', () => hideModal(editModal));
 
+  /**
+   * Persists all set scores and player statistics for the given game.
+   * Submits all requests in parallel and reloads the games grid on success.
+   *
+   * @async
+   * @param {number} gameId   - ID of the game being saved.
+   * @param {number} setCount - Number of set editors currently rendered.
+   * @returns {Promise<void>}
+   */
   async function saveAll(gameId, setCount) {
-    // Save set scores
     const setPromises = [];
     for (let i = 1; i <= setCount; i++) {
       const mhs = parseInt(document.getElementById(`set-${i}-mhs`)?.textContent) || 0;
@@ -395,7 +553,6 @@ document.addEventListener('DOMContentLoaded', () => {
       );
     }
 
-    // Save player stats
     const rows = editModalBody.querySelectorAll('tr[data-player-id]');
     const statPromises = Array.from(rows).map(row => {
       const playerId = row.getAttribute('data-player-id');
@@ -422,13 +579,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ================= ADD GAME =================
+  // ── ADD GAME ──────────────────────────────────────────────────────────────
+
+  // Update the live opponent preview as the user types.
   newOpponentInput.addEventListener('input', () => {
     opponentPreview.textContent = newOpponentInput.value.trim() || '.....';
   });
 
   closeAddModal.addEventListener('click', () => hideModal(addModal));
 
+  /**
+   * Submits the new game form, creates the game record via the API,
+   * then immediately opens the edit modal so stats can be entered.
+   */
   saveNewGameBtn.addEventListener('click', async () => {
     const opponent = newOpponentInput.value.trim();
     if (!opponent) { alert('please enter the opposing school name.'); return; }
@@ -449,7 +612,12 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  // ================= DELETE GAME =================
+  // ── DELETE GAME ───────────────────────────────────────────────────────────
+
+  /**
+   * Confirms the pending deletion, sends a DELETE request to the API,
+   * then reloads the games grid.
+   */
   confirmDeleteBtn.addEventListener('click', async () => {
     if (!pendingDeleteId) return;
     try {
@@ -466,6 +634,7 @@ document.addEventListener('DOMContentLoaded', () => {
   cancelDeleteBtn.addEventListener('click',  () => hideModal(deleteModal));
   closeDeleteModal.addEventListener('click', () => hideModal(deleteModal));
 
-  // ================= INIT =================
+  // ── INIT ──────────────────────────────────────────────────────────────────
+
   loadGames();
 });

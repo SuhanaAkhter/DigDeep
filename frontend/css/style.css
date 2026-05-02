@@ -1,15 +1,21 @@
-/* Layout spacing */
-.landing {
-    padding-left: 5%;
+/**
+ * @file style.css
+ * @description Global styles for the landing page.
+ *
+ * Defines the application-wide colour palette, base typography,
+ * hero layout, and button styles.
+ */
+
+/* ── COLOUR PALETTE ───────────────────────────────────────────────────────── */
+
+:root {
+    --bg-cream:     #F5EBD7;
+    --text-brown:   #6B5B4E;
+    --button-olive: #929375;
+    --button-text:  #4A4A4A;
 }
 
-/* Color Palette */
-:root {
-    --bg-cream: #F5EBD7;
-    --text-brown: #6B5B4E;
-    --button-olive: #929375; /* Closer to your Canva mockup */
-    --button-text: #4A4A4A;
-}
+/* ── BASE ────────────────────────────────────────────────────────────────── */
 
 body {
     background-color: #f7efda;
@@ -18,36 +24,47 @@ body {
     overflow-x: hidden;
 }
 
+/* ── LAYOUT ──────────────────────────────────────────────────────────────── */
+
+.landing {
+    padding-left: 5%;
+}
+
 .hero-content {
     display: flex;
     flex-direction: column;
-    padding-left: 8%; /* Adjust to match the Canva "gutter" space */
+    padding-left: 8%;
 }
 
 .header-text {
-    margin-bottom: -40px; /* Pulls the logo up closer to the text */
+    margin-bottom: -40px;
 }
 
+/* ── TYPOGRAPHY ──────────────────────────────────────────────────────────── */
+
 .hey {
-    font-size: 80px; /* Scaled up to match mockup impact */
+    font-size: 80px;
     font-weight: bold;
     color: #7a6b5d;
-    margin-bottom: -15px; /* Tighter spacing between 'hey' and 'welcome' */
+    margin-bottom: -15px;
 }
 
 .welcome {
     font-size: 60px;
     color: #7a6b5d;
-    margin-bottom: -100px; /* Tighter spacing between 'hey' and 'welcome' */
+    margin-bottom: -100px;
 }
 
+/* ── LOGO ────────────────────────────────────────────────────────────────── */
+
 .main-logo {
-    width: 900px; /* Adjust based on your actual file size */
-    margin-left: 100px; /* This creates that offset "staircase" look from the mockup */
+    width: 900px;
+    margin-left: 100px;
     height: auto;
 }
 
-/* Buttons */
+/* ── BUTTONS ─────────────────────────────────────────────────────────────── */
+
 .button-group {
     gap: 15px;
 }
@@ -62,7 +79,7 @@ body {
     border-radius: 12px;
     border: none;
     transition: transform 0.2s ease;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
 }
 
 .custom-btn:hover {
@@ -70,7 +87,15 @@ body {
     background-color: #838565;
 }
 
-/* Mobile Adjustment */
+.signup,
+.login {
+    background-color: #8a8d6b;
+    color: #3d3d3d;
+    border: none;
+}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+
 @media (max-width: 992px) {
     .text-group {
         margin-top: 50px;
@@ -81,24 +106,9 @@ body {
     }
 }
 
+/* ── FONTS ───────────────────────────────────────────────────────────────── */
 
-
-/* Sign up */
-.signup {
-    background-color: #8a8d6b;
-    color: #3d3d3d;
-    border: none;
-}
-
-/* Login */
-.login {
-    background-color: #8a8d6b;
-    color: #3d3d3d;
-    border: none;
-}
-
-
-@font-face{
+@font-face {
     font-family: 'Etna';
-    src: url('/frontend/assets/fonts/etna-free-font.otf') format('opentype'), /* Path to your font file */
+    src: url('/frontend/assets/fonts/etna-free-font.otf') format('opentype');
 }

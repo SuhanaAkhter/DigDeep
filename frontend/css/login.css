@@ -1,20 +1,33 @@
-/* Using the same colors as landing page */
+/**
+ * @file login.css
+ * @description Styles for the login and sign-up pages.
+ *
+ * Covers page typography, form inputs, the arrow submit button with its
+ * hover/active/focus states, and the staircase logo layout.
+ */
+
+/* ── BASE ────────────────────────────────────────────────────────────────── */
+
 body {
-    background-color: #f7efda; /* Cream background */
+    background-color: #f7efda;
     font-family: 'Etna', sans-serif;
     text-transform: lowercase;
 }
+
+/* ── TYPOGRAPHY ──────────────────────────────────────────────────────────── */
 
 .page-title {
     font-size: 5rem;
     font-weight: bolder;
     color: #6b5b4e;
     margin-bottom: 20px;
+    margin-left: -5px;
 }
 
-/* Form Styling */
+/* ── FORM ────────────────────────────────────────────────────────────────── */
+
 .custom-form {
-    max-width: 350px;
+    max-width: 400px;
 }
 
 .custom-input {
@@ -26,13 +39,18 @@ body {
     color: #a38d8d !important;
 }
 
-/* Placeholder color to match mockup */
 .custom-input::placeholder {
     color: #a38d8d;
     opacity: 0.7;
 }
 
-/* Specific Colors for Inputs */
+.custom-input:focus {
+    box-shadow: none;
+    outline: 2px solid #6b5b4e;
+}
+
+/* ── INPUT COLOUR VARIANTS ───────────────────────────────────────────────── */
+
 .pink {
     background-color: #e5b7b7 !important;
 }
@@ -46,34 +64,28 @@ body {
     color: #6b6d50;
 }
 
-/* Select arrow styling */
+/* Custom dropdown arrow for the olive select element. */
 .form-select.olive {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%236b6d50' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
 }
 
-/* Remove Bootstrap focus blue glow */
-.custom-input:focus {
-    box-shadow: none;
-    outline: 2px solid #6b5b4e;
-}
+/* ── LOGO ────────────────────────────────────────────────────────────────── */
 
-
-/* Staircase alignment nudge */
+/**
+ * Positioned to create a staircase alignment with the form above it.
+ * pointer-events: none allows clicks to pass through to the button below.
+ */
 .signup-logo {
     max-width: 1200px;
     margin-top: 40px;
-    margin-left: -350px; 
+    margin-left: -350px;
     position: relative;
     z-index: 1;
-    pointer-events: none; /* Allows clicks to "pass through" the logo to the button underneath */
+    pointer-events: none;
 }
 
-/* Adjusting the form layout for the arrow */
-.custom-form {
-    max-width: 400px;
-}
+/* ── FORGOT PASSWORD LINK ────────────────────────────────────────────────── */
 
-/* Ensure forgot link stays tucked under inputs */
 .forgot-link {
     font-size: 0.9rem;
     color: #6b5b4e;
@@ -86,12 +98,8 @@ body {
     text-decoration: none;
 }
 
-/* Ensure the titles match the Canva sizing */
-.page-title {
-    margin-left: -5px; /* Slight nudge left to match the Canva alignment */
-}
+/* ── ARROW SUBMIT BUTTON ─────────────────────────────────────────────────── */
 
-/* Arrow Button Base State */
 .submit-arrow-btn {
     background: none;
     border: none;
@@ -99,34 +107,30 @@ body {
     margin-left: 15px;
     cursor: pointer;
     position: relative;
-    z-index: 10; /* Higher than the logo */
-    pointer-events: auto; /* Ensures the button itself stays clickable */
+    z-index: 10;
+    pointer-events: auto;
     transition: transform 0.2s ease-in-out, opacity 0.2s ease;
     display: flex;
     align-items: center;
     outline: none;
 }
 
-/* Hover Effect: Nudge right and scale up slightly */
 .submit-arrow-btn:hover {
     transform: translateX(8px) scale(1.1);
 }
 
-/* Active Effect: Subtle "click" feel when pressed */
 .submit-arrow-btn:active {
     transform: translateX(4px) scale(0.95);
     opacity: 0.8;
 }
 
-/* Ensure the image inside doesn't interfere with the transition */
-.submit-arrow {
-    width: 45px; /* Adjust based on asset size */
-    height: auto;
-    display: block;
-}
-
-/* Focus state for accessibility (keyboard users) */
 .submit-arrow-btn:focus {
     outline: none;
     filter: drop-shadow(0 0 5px rgba(146, 147, 117, 0.5));
+}
+
+.submit-arrow {
+    width: 45px;
+    height: auto;
+    display: block;
 }

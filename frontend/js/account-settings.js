@@ -1,20 +1,53 @@
+/**
+ * @file account-settings.js
+ * @description Handles all interactive behaviour on the Account Settings page.
+ *
+ * Responsibilities
+ * ----------------
+ * - Loads and displays the current user's email, role, display name, and
+ *   profile picture from the API on page load.
+ * - Handles profile picture uploads via a hidden file input, posting the
+ *   image to /api/player/upload-picture and updating the UI on success.
+ * - Manages a shared edit modal that is reused for changing the user's
+ *   email, display name, or password.  The modal's contents are rendered
+ *   dynamically based on which field the user clicked to edit.
+ * - Submits each field change to the appropriate API endpoint and reflects
+ *   the updated value in the displayed text on success.
+ * - Supports keyboard confirmation: pressing Enter while the modal is open
+ *   triggers the save action.
+ *
+ * API endpoints used
+ * ------------------
+ *   GET  /api/auth/me              Fetch current user's email and role.
+ *   GET  /api/player/me            Fetch current user's name and picture.
+ *   POST /api/player/upload-picture Upload a new profile picture.
+ *   POST /api/auth/update-email    Change the account email address.
+ *   POST /api/player/update-name   Change the display name.
+ *   POST /api/auth/update-password Change the account password.
+ */
+
 document.addEventListener('DOMContentLoaded', async () => {
 
-  // ── LOAD CURRENT USER INFO ──────────────────────────────
+  // ── LOAD CURRENT USER INFO ──────────────────────────────────────────────
+
   try {
     const res  = await fetch('/api/auth/me');
     const data = await res.json();
+
     if (data.error) {
       window.location.href = '/login';
       return;
     }
+
     document.getElementById('displayEmail').textContent = data.email || '—';
     document.getElementById('displayRole').textContent  = data.role  || '—';
 
-    // Load name and picture for both roles via /api/player/me
+    // Name and picture are stored on the player/coach profile, not on the
+    // auth record, so a second request is needed.
     try {
       const pRes  = await fetch('/api/player/me');
       const pData = await pRes.json();
+
       if (pData.name) {
         document.getElementById('displayName').textContent       = pData.name;
         document.getElementById('displayNameInline').textContent = pData.name;
@@ -22,17 +55,21 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (pData.picture) {
         showProfilePic(pData.picture);
       }
-    } catch { /* profile info optional */ }
+    } catch {
+      // Profile info is supplementary; failure here should not block the page.
+    }
 
   } catch {
     window.location.href = '/login';
   }
 
-  // ── PROFILE PICTURE ─────────────────────────────────────
+  // ── PROFILE PICTURE ──────────────────────────────────────────────────────
+
   const picInput  = document.getElementById('profilePicInput');
   const picBtn    = document.getElementById('profilePicBtn');
   const picCircle = document.getElementById('profilePicDisplay');
 
+  // Both the button and the picture circle trigger the hidden file picker.
   picBtn.addEventListener('click',    () => picInput.click());
   picCircle.addEventListener('click', () => picInput.click());
 
@@ -47,13 +84,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     picBtn.disabled    = true;
 
     try {
+      // Content-Type must NOT be set manually here; the browser sets the
+      // correct multipart/form-data boundary automatically for FormData.
       const res  = await fetch('/api/player/upload-picture', {
         method: 'POST',
-        body: formData
-        // Do NOT set Content-Type header — browser sets it automatically
-        // with the correct multipart boundary for FormData
+        body:   formData,
       });
-
       const data = await res.json();
 
       if (data.picture_url) {
@@ -73,6 +109,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  /**
+   * Replace the placeholder icon with the user's profile picture.
+   *
+   * @param {string} url - Relative URL of the uploaded image.
+   */
   function showProfilePic(url) {
     const img  = document.getElementById('profilePicImg');
     const icon = document.getElementById('profilePicUploadIcon');
@@ -81,7 +122,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     icon.style.display = 'none';
   }
 
-  // ── EDIT MODAL ───────────────────────────────────────────
+  // ── EDIT MODAL ───────────────────────────────────────────────────────────
+
   const modal       = document.getElementById('editModal');
   const modalTitle  = document.getElementById('modalTitle');
   const modalFields = document.getElementById('modalFields');
@@ -89,17 +131,27 @@ document.addEventListener('DOMContentLoaded', async () => {
   const modalSave   = document.getElementById('modalSave');
   const closeModal  = document.getElementById('closeModal');
 
+  /** The field currently being edited: 'email' | 'name' | 'password'. */
   let currentField = null;
 
+  // Open the modal when any edit button is clicked; each button carries a
+  // data-field attribute identifying which field it edits.
   document.querySelectorAll('.edit-btn').forEach(btn => {
     btn.addEventListener('click', () => openModal(btn.dataset.field));
   });
 
+  // Close the modal on the close button or a backdrop click.
   closeModal.addEventListener('click', () => { modal.style.display = 'none'; });
   modal.addEventListener('click', e => {
     if (e.target === modal) modal.style.display = 'none';
   });
 
+  /**
+   * Open the edit modal and render the appropriate input fields for the
+   * given field type.
+   *
+   * @param {'email'|'name'|'password'} field - The field to edit.
+   */
   function openModal(field) {
     currentField           = field;
     modalError.textContent = '';
@@ -130,22 +182,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('modalInput1').focus();
   }
 
+  /**
+   * Validate the modal's inputs and POST the change to the relevant endpoint.
+   *
+   * Validation rules per field:
+   *  - email:    both fields required; values must match.
+   *  - name:     field must be non-empty.
+   *  - password: all three fields required; new password ≥ 8 characters;
+   *              new password and confirmation must match.
+   *
+   * On success, updates the displayed value on the page and closes the modal.
+   * On failure, shows the server-returned error message inside the modal.
+   */
   modalSave.addEventListener('click', async () => {
     modalError.textContent = '';
     const input1 = document.getElementById('modalInput1')?.value.trim();
     const input2 = document.getElementById('modalInput2')?.value.trim();
     const input3 = document.getElementById('modalInput3')?.value.trim();
 
+    // Client-side validation
     if (currentField === 'email') {
-      if (!input1) { modalError.textContent = 'please enter a new email.'; return; }
-      if (input1 !== input2) { modalError.textContent = 'emails do not match.'; return; }
+      if (!input1)            { modalError.textContent = 'please enter a new email.';    return; }
+      if (input1 !== input2)  { modalError.textContent = 'emails do not match.';         return; }
     } else if (currentField === 'name') {
-      if (!input1) { modalError.textContent = 'please enter a name.'; return; }
+      if (!input1)            { modalError.textContent = 'please enter a name.';         return; }
     } else if (currentField === 'password') {
-      if (!input1) { modalError.textContent = 'please enter your current password.'; return; }
-      if (!input2) { modalError.textContent = 'please enter a new password.'; return; }
-      if (input2.length < 8) { modalError.textContent = 'password must be at least 8 characters.'; return; }
-      if (input2 !== input3) { modalError.textContent = 'new passwords do not match.'; return; }
+      if (!input1)            { modalError.textContent = 'please enter your current password.'; return; }
+      if (!input2)            { modalError.textContent = 'please enter a new password.'; return; }
+      if (input2.length < 8)  { modalError.textContent = 'password must be at least 8 characters.'; return; }
+      if (input2 !== input3)  { modalError.textContent = 'new passwords do not match.'; return; }
     }
 
     modalSave.disabled    = true;
@@ -156,9 +221,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       if (currentField === 'email') {
         res  = await fetch('/api/auth/update-email', {
-          method: 'POST',
+          method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ new_email: input1 })
+          body:    JSON.stringify({ new_email: input1 }),
         });
         data = await res.json();
         if (data.success) {
@@ -167,9 +232,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       } else if (currentField === 'name') {
         res  = await fetch('/api/player/update-name', {
-          method: 'POST',
+          method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name: input1 })
+          body:    JSON.stringify({ name: input1 }),
         });
         data = await res.json();
         if (data.success) {
@@ -179,9 +244,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       } else if (currentField === 'password') {
         res  = await fetch('/api/auth/update-password', {
-          method: 'POST',
+          method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ current_password: input1, new_password: input2 })
+          body:    JSON.stringify({ current_password: input1, new_password: input2 }),
         });
         data = await res.json();
       }
@@ -200,6 +265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
   });
 
+  // Allow the user to confirm the modal by pressing Enter.
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter' && modal.style.display === 'flex') {
       modalSave.click();

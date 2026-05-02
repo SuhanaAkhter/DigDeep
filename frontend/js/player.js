@@ -1,41 +1,100 @@
 /**
- * player.js
- * Handles player management UI:
- *  - Fetching and displaying players
- *  - Search + filter by position
- *  - Selecting a player to view their detail card
- *  - Adding new players via prompt
+ * @file player.js
+ * @description Manages the player management page UI.
+ *
+ * Responsibilities:
+ *  - Fetching and rendering the player grid
+ *  - Filtering players by name (search) and position (checkboxes)
+ *  - Displaying a detail card for a selected player
+ *  - Toggling an inline stats preview for a selected player
+ *  - Adding new players via a modal form
  */
 
 document.addEventListener('DOMContentLoaded', () => {
 
-  const playersGrid       = document.getElementById('playersGrid');
-  const playerDetailCard  = document.getElementById('playerDetailCard');
-  const playerNameEl      = document.getElementById('playerName');
-  const playerInfoEl      = document.getElementById('playerInfo');
-  const playerPicDisplay  = document.getElementById('playerPicDisplay');
-  const viewStatsBtn      = document.getElementById('viewStatsBtn');
-  const playerStatsPreview = document.getElementById('playerStatsPreview');
-  const searchInput       = document.getElementById('searchInput');
-  const checkboxes        = document.querySelectorAll('.position-filter');
+  // ── DOM REFERENCES ────────────────────────────────────────────────────────
 
-  // Add player modal elements
-  const addModal       = document.getElementById('addPlayerModal');
+  /** @type {HTMLElement} Grid container where player tiles are rendered. */
+  const playersGrid = document.getElementById('playersGrid');
+
+  /** @type {HTMLElement} Sidebar card that shows the selected player's details. */
+  const playerDetailCard = document.getElementById('playerDetailCard');
+
+  /** @type {HTMLElement} Element that displays the selected player's name. */
+  const playerNameEl = document.getElementById('playerName');
+
+  /** @type {HTMLElement} Element that displays the selected player's biographical info. */
+  const playerInfoEl = document.getElementById('playerInfo');
+
+  /** @type {HTMLElement} Container for the selected player's profile picture. */
+  const playerPicDisplay = document.getElementById('playerPicDisplay');
+
+  /** @type {HTMLButtonElement} Button that toggles the inline stats preview. */
+  const viewStatsBtn = document.getElementById('viewStatsBtn');
+
+  /** @type {HTMLElement} Container for the inline stats preview panel. */
+  const playerStatsPreview = document.getElementById('playerStatsPreview');
+
+  /** @type {HTMLInputElement} Text input used to filter players by name. */
+  const searchInput = document.getElementById('searchInput');
+
+  /** @type {NodeList<HTMLInputElement>} Checkboxes used to filter players by position. */
+  const checkboxes = document.querySelectorAll('.position-filter');
+
+  /** @type {HTMLElement} Modal overlay for the add-player form. */
+  const addModal = document.getElementById('addPlayerModal');
+
+  /** @type {HTMLButtonElement} Button that closes the add-player modal. */
   const closeAddPlayer = document.getElementById('closeAddPlayer');
-  const saveAddPlayer  = document.getElementById('saveAddPlayer');
+
+  /** @type {HTMLButtonElement} Button that submits the add-player form. */
+  const saveAddPlayer = document.getElementById('saveAddPlayer');
+
+  /** @type {HTMLElement} Element that displays validation errors in the add-player modal. */
   const addPlayerError = document.getElementById('addPlayerError');
 
-  let playersData    = [];
+  // ── STATE ─────────────────────────────────────────────────────────────────
+
+  /**
+   * The full list of player objects fetched from the API.
+   * @type {Array<{ id: number, name: string, grade: string, position: string, jersey: string, picture: string|null }>}
+   */
+  let playersData = [];
+
+  /**
+   * The player whose detail card is currently visible.
+   * @type {{ id: number, name: string, grade: string, position: string, jersey: string, picture: string|null } | null}
+   */
   let selectedPlayer = null;
 
-  // ── MODAL HELPERS ──────────────────────────────────────
+  // ── MODAL HELPERS ─────────────────────────────────────────────────────────
+
+  /**
+   * Displays a modal overlay using flex layout.
+   * @param {HTMLElement} el - The modal overlay element to show.
+   */
   function showModal(el) { el.style.display = 'flex'; }
+
+  /**
+   * Hides a modal overlay.
+   * @param {HTMLElement} el - The modal overlay element to hide.
+   */
   function hideModal(el) { el.style.display = 'none'; }
 
   if (closeAddPlayer) closeAddPlayer.addEventListener('click', () => hideModal(addModal));
+
+  // Close the add-player modal when the user clicks its backdrop.
   addModal.addEventListener('click', e => { if (e.target === addModal) hideModal(addModal); });
 
-  // ── FETCH PLAYERS ──────────────────────────────────────
+  // ── FETCH PLAYERS ─────────────────────────────────────────────────────────
+
+  /**
+   * Fetches the full player list from the API, normalises each record,
+   * stores the result in `playersData`, and renders the grid.
+   *
+   * @async
+   * @returns {Promise<void>}
+   */
   async function fetchPlayers() {
     try {
       const res  = await fetch('/api/players/');
@@ -55,11 +114,18 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // ── DISPLAY PLAYERS ────────────────────────────────────
+  // ── DISPLAY PLAYERS ───────────────────────────────────────────────────────
+
+  /**
+   * Clears the player grid and renders one tile per player, preceded by
+   * an "add player" tile. Tapping a player tile opens their detail card.
+   *
+   * @param {Array<{ id: number, name: string, position: string, picture: string|null }>} players
+   *   The (possibly filtered) list of players to display.
+   */
   function displayPlayers(players) {
     playersGrid.innerHTML = '';
 
-    // Add player button
     const addCol = document.createElement('div');
     addCol.className = 'col text-center';
     addCol.innerHTML = `
@@ -105,7 +171,15 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── SHOW PLAYER DETAIL ─────────────────────────────────
+  // ── PLAYER DETAIL CARD ────────────────────────────────────────────────────
+
+  /**
+   * Populates and reveals the player detail sidebar for the given player.
+   * Resets any previously visible stats preview.
+   *
+   * @param {{ id: number, name: string, grade: string, jersey: string, position: string, picture: string|null }} player
+   *   The player whose details should be shown.
+   */
   function showPlayerDetail(player) {
     selectedPlayer = player;
     playerDetailCard.style.display = 'block';
@@ -117,7 +191,6 @@ document.addEventListener('DOMContentLoaded', () => {
       <p class="mt-3"><strong>position:</strong><br>${player.position || '—'}</p>
     `;
 
-    // Show picture or placeholder
     if (player.picture) {
       playerPicDisplay.innerHTML = `
         <img src="${player.picture}"
@@ -127,13 +200,19 @@ document.addEventListener('DOMContentLoaded', () => {
         <img src="/assets/icons/upload_arrow.png" style="width:30px;">`;
     }
 
-    // Reset stats preview
     playerStatsPreview.style.display = 'none';
     viewStatsBtn.textContent = 'view stats';
   }
 
-  // ── VIEW STATS BUTTON ──────────────────────────────────
+  // ── STATS PREVIEW TOGGLE ──────────────────────────────────────────────────
+
   if (viewStatsBtn) {
+    /**
+     * Toggles the inline stats preview panel. On first open, fetches career
+     * totals (kills, aces, blocks, digs) for the currently selected player
+     * and populates the preview elements. On subsequent clicks the panel is
+     * hidden without re-fetching.
+     */
     viewStatsBtn.addEventListener('click', async () => {
       if (!selectedPlayer) return;
 
@@ -158,8 +237,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── ADD PLAYER ─────────────────────────────────────────
+  // ── ADD PLAYER ────────────────────────────────────────────────────────────
+
   if (saveAddPlayer) {
+    /**
+     * Reads the add-player form fields, validates that a name has been
+     * provided, then POSTs the new player to the API. Closes the modal and
+     * refreshes the grid on success; displays an inline error on failure.
+     */
     saveAddPlayer.addEventListener('click', async () => {
       const name     = document.getElementById('newPlayerName').value.trim();
       const grade    = document.getElementById('newPlayerGrade').value.trim();
@@ -187,7 +272,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ── FILTER ─────────────────────────────────────────────
+  // ── FILTER ────────────────────────────────────────────────────────────────
+
+  /**
+   * Filters `playersData` against the current search text and checked
+   * position filters, then re-renders the grid with the matching subset.
+   *
+   * A player is included when:
+   *  - Their name contains the search string (case-insensitive), AND
+   *  - At least one of their positions matches a checked filter,
+   *    or no position filters are checked (show all positions).
+   */
   function filterPlayers() {
     const searchText        = searchInput.value.toLowerCase();
     const selectedPositions = Array.from(checkboxes)
@@ -209,7 +304,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (searchInput) searchInput.addEventListener('input', filterPlayers);
   checkboxes.forEach(cb => cb.addEventListener('change', filterPlayers));
 
-  // ── INIT ───────────────────────────────────────────────
-  fetchPlayers();
+  // ── INIT ──────────────────────────────────────────────────────────────────
 
+  fetchPlayers();
 });
