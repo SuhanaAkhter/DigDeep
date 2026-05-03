@@ -4,20 +4,31 @@
   <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="/css/dashboard.css">
+  <!-- Toggle switch styles (.toggle-switch, .toggle-slider, .permission-row) -->
   <link rel="stylesheet" href="/css/permissions.css">
   <title>Permissions | Dig Deep</title>
 </head>
 <body>
   <div class="container-fluid px-5">
 
-    <!-- ================== NAVIGATION ================== -->
     {% include 'shared/navbar.html' %}
 
-    <!-- ================== MAIN CONTENT ================== -->
+    <!-- ── COACH PERMISSIONS ──────────────────────────────────────────────
+         Coaches can toggle whether players are allowed to view team stats.
+         The toggle state is persisted in the database (permissions table, id=1)
+         via GET/POST /api/stats/permissions.
+
+         On page load: fetches current setting and sets the checkbox state.
+         On toggle change: immediately POSTs the new value — no save button needed.
+
+         Players read this same endpoint on their permissions page to see
+         what they are/aren't allowed to access.
+    ─────────────────────────────────────────────────────────────────────── -->
     <h1 class="permissions-title">permissions</h1>
 
     <div class="permissions-card">
       <div class="permission-row">
+        <!-- Toggle switch: CSS-styled checkbox -->
         <label class="toggle-switch">
           <input type="checkbox" id="toggleTeamStats">
           <span class="toggle-slider"></span>
@@ -25,18 +36,19 @@
         allow players to view full team stats
       </div>
     </div>
+
   </div>
 
   <script>
     const toggle = document.getElementById('toggleTeamStats');
 
-    // Load current setting
+    // Load persisted setting from database on page load
     fetch('/api/stats/permissions')
       .then(r => r.json())
       .then(data => { toggle.checked = data.allow_players_view_stats; })
-      .catch(() => { toggle.checked = true; });
+      .catch(() => { toggle.checked = true; }); // default to allowed on error
 
-    // Save on change
+    // Persist new value immediately whenever the toggle changes
     toggle.addEventListener('change', () => {
       fetch('/api/stats/permissions', {
         method: 'POST',
@@ -45,6 +57,7 @@
       });
     });
   </script>
+
   <script src="/js/navbar.js"></script>
 </body>
 </html>

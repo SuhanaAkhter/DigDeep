@@ -11,13 +11,31 @@
 
     {% include 'shared/navbar.html' %}
 
+    <!-- ── PLAYER DASHBOARD ───────────────────────────────────────────────
+         Left column  (col-md-7): welcome text + player profile group
+         Right column (col-md-4): featured games sidebar
+
+         Template variables (set in app.py → player_dashboard_page()):
+           player — player dict from get_player_by_user_id() or None
+           games  — list of game dicts from get_all_games()
+
+         Profile picture falls back to the pink placeholder circle if
+         the player hasn't uploaded one yet.
+
+         Set scores are fetched client-side by dashboard-scores.js
+         via GET /api/stats/game/<id>/sets, then summed and displayed.
+    ─────────────────────────────────────────────────────────────────────── -->
     <div class="row">
+
+      <!-- Left: welcome + profile -->
       <div class="col-md-7">
         <div style="margin-top: 15vh;">
           <h1 style="font-size: 5rem; font-weight: 900;">hey!</h1>
           <h2 style="font-size: 2.5rem;">welcome to digdeep....</h2>
         </div>
+
         <div class="profile-group">
+          <!-- Show uploaded photo if one exists, otherwise the placeholder circle -->
           {% if player and player.picture %}
             <img src="{{ player.picture }}" alt="profile"
                  style="width:120px;height:120px;border-radius:50%;object-fit:cover;">
@@ -33,26 +51,32 @@
         </div>
       </div>
 
+      <!-- Right: featured games sidebar -->
       <div class="col-md-4 offset-md-1">
         <div class="featured-sidebar">
           <h2 class="sidebar-title">featured games</h2>
           <a href="team-stats" style="color: inherit; text-decoration: underline;">
             <p>view all games</p>
           </a>
+
           {% if games %}
             {% for game in games[:2] %}
             <div class="game-card">
               <p class="game-title">MHS VS {{ game.opponent }}</p>
+              <!-- data-game-score tells dashboard-scores.js which game to fetch sets for -->
               <div class="game-score" data-game-score="{{ game.id }}">—</div>
             </div>
             {% endfor %}
           {% else %}
             <p style="opacity: 0.7;">no games yet</p>
           {% endif %}
+
         </div>
       </div>
     </div>
   </div>
+
+  <!-- dashboard-scores.js fetches summed set scores for all [data-game-score] elements -->
   <script src="/js/dashboard-scores.js"></script>
 </body>
 </html>

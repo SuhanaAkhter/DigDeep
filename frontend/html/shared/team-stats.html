@@ -3,69 +3,100 @@
 <head>
   <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Shared dashboard styles (navbar, background, colours) -->
   <link rel="stylesheet" href="/css/dashboard.css">
+  <!-- Stat card styles (.stat-card, .stat-label, .stat-value colour variants) -->
   <link rel="stylesheet" href="/css/team-stats.css">
   <title>Team Stats | Dig Deep</title>
 </head>
 <body>
   <div class="container-fluid px-5">
+
+    <!-- Shared navbar -->
     {% include 'shared/navbar.html' %}
 
+    <!-- ── TEAM STATS PAGE ────────────────────────────────────────────────
+         Left column  (col-md-7): six stat cards populated by team-stats.js
+                                  via GET /api/stats/team/totals
+         Right column (col-md-4): featured games sidebar populated by
+                                  team-stats.js via GET /api/games/ +
+                                  GET /api/stats/game/<id>/sets
+         Stat card labels must exactly match the keys in statMapping
+         inside team-stats.js — changing them here will break the mapping.
+    ─────────────────────────────────────────────────────────────────────── -->
     <div class="row mt-5">
+
+      <!-- Left: season aggregate stat cards -->
       <div class="col-md-7">
         <h1 class="stats-header">team season stats</h1>
         <div class="row g-4 mt-2">
+
+          <!-- Each .stat-value starts as '-' and is replaced by team-stats.js -->
           <div class="col-md-4">
             <div class="stat-card olive">
               <p class="stat-label">kills</p>
               <div class="stat-value">-</div>
             </div>
           </div>
+
           <div class="col-md-4">
             <div class="stat-card pink">
               <p class="stat-label">aces</p>
               <div class="stat-value">-</div>
             </div>
           </div>
+
           <div class="col-md-4">
             <div class="stat-card brown">
               <p class="stat-label">blocks</p>
               <div class="stat-value">-</div>
             </div>
           </div>
+
+          <!-- Kill ratio = kills / (kills + blocks + digs) × 100, computed in JS -->
           <div class="col-md-4">
             <div class="stat-card olive">
               <p class="stat-label">kill ratio %</p>
               <div class="stat-value">-</div>
             </div>
           </div>
+
+          <!-- Serve ratio = aces / (aces + digs) × 100, computed in JS -->
           <div class="col-md-4">
             <div class="stat-card pink">
               <p class="stat-label">serve ratio %</p>
               <div class="stat-value">-</div>
             </div>
           </div>
+
           <div class="col-md-4">
             <div class="stat-card brown">
               <p class="stat-label">digs</p>
               <div class="stat-value">-</div>
             </div>
           </div>
+
         </div>
       </div>
 
+      <!-- Right: featured games sidebar -->
       <div class="col-md-4 offset-md-1">
         <div class="featured-sidebar">
           <h2 class="sidebar-title">featured games</h2>
+          <!-- Link only shown to coaches in practice (both roles can see team-stats) -->
           <a href="manage-games" style="color: inherit; text-decoration: underline;">
             <p>view all games</p>
           </a>
+          <!-- Cards injected here by loadFeaturedGames() in team-stats.js
+               Each card shows opponent name + summed set score (e.g. 75–60) -->
           <div id="featuredGamesList"></div>
         </div>
       </div>
+
     </div>
   </div>
 
+  <!-- team-stats.js: fetches totals + featured games, wires hover effects -->
   <script src="/js/team-stats.js"></script>
 </body>
 </html>

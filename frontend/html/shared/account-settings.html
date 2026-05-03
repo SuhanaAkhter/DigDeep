@@ -2,61 +2,88 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>DigDeep | Account Settings</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DigDeep | Account Settings</title>
+
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Shared dashboard layout (navbar, sidebar colours, body background) -->
   <link rel="stylesheet" href="/css/dashboard.css">
+  <!-- Settings-specific styles: card, info rows, edit modal, profile pic circle -->
   <link rel="stylesheet" href="/css/account-settings.css">
 </head>
 <body>
   <div class="container-fluid px-5">
 
+    <!-- Shared navbar (role + current_user_picture injected by Flask) -->
     {% include 'shared/navbar.html' %}
 
+    <!-- ── ACCOUNT SETTINGS CARD ──────────────────────────────────────────
+         Single card showing:
+           - Profile picture (clickable to upload a new one)
+           - Display name and role label
+           - Editable rows for email, name, and password
+         All edits open a modal; saves go to the relevant API endpoint.
+         Logic handled entirely by account-settings.js.
+    ─────────────────────────────────────────────────────────────────────── -->
     <div class="row mt-5">
       <div class="col-md-5">
 
-        <!-- Account Card -->
         <div class="settings-card">
           <h2 class="settings-title">account information</h2>
 
           <div class="d-flex align-items-start gap-4 mt-3">
 
-            <!-- Profile Picture -->
+            <!-- Profile picture section -->
             <div class="profile-pic-wrapper">
+
+              <!-- Clicking the circle also triggers the file input -->
               <div class="profile-pic-circle" id="profilePicDisplay">
+                <!-- Populated by account-settings.js once /api/player/me responds -->
                 <img id="profilePicImg" src="" alt="" style="display:none;">
+                <!-- Upload icon shown when no photo has been set yet -->
                 <div id="profilePicUploadIcon">
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#E5B7B7" stroke-width="2">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none"
+                       stroke="#E5B7B7" stroke-width="2">
                     <circle cx="12" cy="12" r="10"/>
                     <path d="M12 8v4M12 12l-2 2M12 12l2 2"/>
                     <path d="M8 16h8"/>
                   </svg>
                 </div>
               </div>
+
+              <!-- Hidden file input; triggered by clicking the circle or button -->
               <input type="file" id="profilePicInput" accept="image/*" style="display:none;">
               <button class="pic-upload-btn" id="profilePicBtn">upload photo</button>
+
+              <!-- Name and role labels below the circle, populated by JS -->
               <div class="profile-name-display" id="displayName">your name</div>
               <div class="profile-role-display" id="displayRole">—</div>
             </div>
 
-            <!-- Info Fields -->
+            <!-- Editable info fields -->
             <div class="flex-grow-1">
+
+              <!-- Each row has a label, a live-updated value, and an edit button.
+                   data-field tells account-settings.js which modal form to show. -->
               <div class="info-row">
                 <span class="info-label">email:</span>
                 <span class="info-value" id="displayEmail">—</span>
                 <button class="edit-btn" data-field="email">edit</button>
               </div>
+
               <div class="info-row">
                 <span class="info-label">name:</span>
                 <span class="info-value" id="displayNameInline">—</span>
                 <button class="edit-btn" data-field="name">edit</button>
               </div>
+
               <div class="info-row">
                 <span class="info-label">password:</span>
+                <!-- Password value is always masked; never shown in plaintext -->
                 <span class="info-value">••••••••</span>
                 <button class="edit-btn" data-field="password">edit</button>
               </div>
+
             </div>
           </div>
         </div>
@@ -65,21 +92,29 @@
     </div>
   </div>
 
-  <!-- Edit Modal -->
+  <!-- ── EDIT MODAL ─────────────────────────────────────────────────────────
+       Single reusable modal that account-settings.js populates dynamically
+       with different input fields depending on which "edit" button was clicked
+       (email → two email inputs, name → one text input, password → three password inputs).
+  ──────────────────────────────────────────────────────────────────────────── -->
   <div class="settings-modal-overlay" id="editModal" style="display:none;">
     <div class="settings-modal">
       <div class="settings-modal-header">
+        <!-- Title updated by JS to match the field being edited -->
         <span id="modalTitle">edit</span>
         <button class="close-modal-sm" id="closeModal">✕</button>
       </div>
       <div class="settings-modal-body">
+        <!-- Input fields injected here by account-settings.js -->
         <div id="modalFields"></div>
+        <!-- Inline error message shown on validation failure or API error -->
         <div class="modal-error" id="modalError"></div>
         <button class="settings-save-btn" id="modalSave">save</button>
       </div>
     </div>
   </div>
 
+  <!-- account-settings.js: loads user info, handles picture upload, edit modal -->
   <script src="/js/account-settings.js"></script>
 </body>
 </html>

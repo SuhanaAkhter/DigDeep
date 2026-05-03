@@ -4,61 +4,79 @@
   <!--
     manage-players.html
     -------------------
-    Page for managing volleyball team players.
+    Coach-only page for viewing and managing the team roster.
     Features:
-      - Search players by name
-      - Filter players by position (supports multiple positions)
-      - Click a player to see detailed info
-      - Add Player popup form (pink box)
-      - Dynamic rendering from API endpoint /api/players/
+      - Player grid populated from GET /api/players/
+      - Search by name (live filter, no server round-trip)
+      - Filter by position via checkboxes
+      - Click a player card to open the detail sidebar
+      - Detail sidebar shows info + toggle-able season stat preview
+      - Add player modal posts to POST /api/players/add
+    All dynamic behaviour is in player.js.
   -->
   <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <!-- Dashboard base styles -->
   <link rel="stylesheet" href="../../css/dashboard.css">
+  <!-- Player grid, detail card, upload box styles -->
   <link rel="stylesheet" href="../../css/manage-players.css">
+  <!-- Modal styles reused from game-stats (.custom-modal, .modal-content-small, etc.) -->
   <link rel="stylesheet" href="../../css/game-stats.css">
   <title>Manage Players | Dig Deep</title>
 </head>
 <body>
   <div class="container-fluid px-5 mt-3">
-    <!-- ================== NAVIGATION ================== -->
+
     {% include 'shared/navbar.html' %}
 
-    <!-- ================== MAIN CONTENT ================== -->
     <div class="row">
-      <!-- ========== PLAYERS LIST ========== -->
+
+      <!-- ── LEFT: Player grid + search/filter ──────────────────────────── -->
       <div class="col-md-8">
         <h1 class="page-header-text">players</h1>
 
-        <!-- Search + Filter -->
+        <!-- Search input + position checkboxes
+             Both are listened to in player.js → filterPlayers() -->
         <div class="d-flex align-items-center mb-4 gap-3">
           <input type="text" id="searchInput" class="search-input" placeholder="name...">
           <div class="filter-group d-flex align-items-center gap-2">
             <span>filter by:</span>
-            <label><input type="checkbox" class="position-filter" value="Right" checked> right</label>
-            <label><input type="checkbox" class="position-filter" value="Left"> left</label>
-            <label><input type="checkbox" class="position-filter" value="Setter"> setter</label>
-            <label><input type="checkbox" class="position-filter" value="Libero"> libero</label>
-            <label><input type="checkbox" class="position-filter" value="Middle"> middle</label>
-            <label><input type="checkbox" class="position-filter" value="Outside"> outside</label>
-            <label><input type="checkbox" class="position-filter" value="Opposite"> opposite</label>
+            <!-- "Right" starts checked so all players show on load -->
+            <label><input type="checkbox" class="position-filter" value="Right"     checked> right</label>
+            <label><input type="checkbox" class="position-filter" value="Left">              left</label>
+            <label><input type="checkbox" class="position-filter" value="Setter">            setter</label>
+            <label><input type="checkbox" class="position-filter" value="Libero">            libero</label>
+            <label><input type="checkbox" class="position-filter" value="Middle">            middle</label>
+            <label><input type="checkbox" class="position-filter" value="Outside">           outside</label>
+            <label><input type="checkbox" class="position-filter" value="Opposite">          opposite</label>
           </div>
         </div>
 
+        <!-- Player cards injected here by displayPlayers() in player.js
+             First card is always the "add player" button -->
         <div id="playersGrid" class="row row-cols-4 g-4"></div>
       </div>
 
-      <!-- ========== PLAYER DETAIL ========== -->
+      <!-- ── RIGHT: Player detail sidebar ───────────────────────────────── -->
+      <!-- Hidden until a player card is clicked; shown by showPlayerDetail() -->
       <div class="col-md-3 offset-md-1">
         <div id="playerDetailCard" class="player-detail-card" style="display:none;">
           <h2 id="playerName" class="linda-title"></h2>
+
           <div class="d-flex justify-content-between align-items-start">
+            <!-- Info (name/grade/jersey/position) injected by showPlayerDetail() -->
             <div id="playerInfo" class="linda-info"></div>
+            <!-- Profile picture or upload icon injected by showPlayerDetail() -->
             <div id="playerPicDisplay" class="linda-upload-box">
               <img src="../../assets/icons/upload_arrow.png" style="width:30px;">
             </div>
           </div>
+
+          <!-- Toggle button: fetches season totals from
+               GET /api/stats/player/<id>/totals and shows/hides the mini cards -->
           <button class="view-stats-btn mt-4" id="viewStatsBtn">view stats</button>
+
+          <!-- Stat preview cards — hidden until "view stats" is clicked -->
           <div id="playerStatsPreview" class="mt-4" style="display:none;">
             <div class="row g-2 mt-1">
               <div class="col-6">
@@ -87,12 +105,18 @@
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ADD PLAYER MODAL -->
+  <!-- ── ADD PLAYER MODAL ───────────────────────────────────────────────────
+       Triggered by clicking the "add player" card in the grid.
+       On save, player.js POSTs to /api/players/add (coach-only route).
+       The new player gets a row in the players table with no linked user_id
+       (they can sign up separately and be linked later).
+  ──────────────────────────────────────────────────────────────────────────── -->
   <div id="addPlayerModal" class="custom-modal">
     <div class="modal-content-small">
       <div class="modal-header-custom">
@@ -101,29 +125,38 @@
       </div>
       <div class="modal-body-custom" style="padding:20px;">
         <div class="d-flex flex-column gap-3">
+
           <div>
             <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">name</label>
-            <input type="text" id="newPlayerName" class="lorem-input w-100 mt-1" placeholder="player name">
+            <input type="text" id="newPlayerName" class="lorem-input w-100 mt-1"
+                   placeholder="player name">
           </div>
           <div>
             <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">grade</label>
-            <input type="text" id="newPlayerGrade" class="lorem-input w-100 mt-1" placeholder="e.g. 11">
+            <input type="text" id="newPlayerGrade" class="lorem-input w-100 mt-1"
+                   placeholder="e.g. 11">
           </div>
           <div>
             <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">position</label>
-            <input type="text" id="newPlayerPosition" class="lorem-input w-100 mt-1" placeholder="e.g. Middle, Setter">
+            <input type="text" id="newPlayerPosition" class="lorem-input w-100 mt-1"
+                   placeholder="e.g. Middle, Setter">
           </div>
           <div>
             <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">jersey #</label>
-            <input type="number" id="newPlayerJersey" class="lorem-input w-100 mt-1" placeholder="e.g. 7">
+            <input type="number" id="newPlayerJersey" class="lorem-input w-100 mt-1"
+                   placeholder="e.g. 7">
           </div>
+
+          <!-- Error message shown inline if validation fails or API returns error -->
           <p id="addPlayerError" style="color:#a05050;font-size:0.85rem;min-height:18px;"></p>
-          <button id="saveAddPlayer" class="save-btn-floating" style="position:static;margin-top:4px;">add player</button>
+          <button id="saveAddPlayer" class="save-btn-floating"
+                  style="position:static;margin-top:4px;">add player</button>
         </div>
       </div>
     </div>
   </div>
 
+  <!-- player.js: all roster grid, filter, detail card, and add-player logic -->
   <script src="../../js/player.js"></script>
 </body>
 </html>

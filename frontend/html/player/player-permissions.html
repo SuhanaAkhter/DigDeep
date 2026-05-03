@@ -9,31 +9,43 @@
 </head>
 <body>
   <div class="container-fluid px-5">
-    <!-- ================== NAVIGATION ================== -->
+
     {% include 'shared/navbar.html' %}
 
-    <!-- ================== MAIN CONTENT ================== -->
+    <!-- ── PLAYER PERMISSIONS ─────────────────────────────────────────────
+         Read-only view of what the coach has allowed/restricted.
+         Fetches the same endpoint the coach uses to set permissions
+         (GET /api/stats/permissions) and displays a plain-language message.
+
+         Currently tracks one permission:
+           allow_players_view_stats — whether team-stats page is accessible
+    ─────────────────────────────────────────────────────────────────────── -->
     <h1 class="permissions-title">permissions</h1>
 
     <div class="permissions-card">
+      <!-- Content injected by the script below once the API responds -->
       <div id="permissionsContent">
         <p style="opacity:0.6;">loading...</p>
       </div>
     </div>
+
   </div>
 
   <script>
+    // Fetch current permissions from the database and render a status message
     fetch('/api/stats/permissions')
       .then(r => r.json())
       .then(data => {
         const el = document.getElementById('permissionsContent');
         if (data.allow_players_view_stats) {
+          // Green checkmark: player has access
           el.innerHTML = `
             <div class="permission-row">
               <span style="color:#7a9e7e; font-size:1.2rem;">✓</span>
               you can view full team stats
             </div>`;
         } else {
+          // Red cross: coach has restricted access
           el.innerHTML = `
             <div class="permission-row">
               <span style="color:#a05050; font-size:1.2rem;">✗</span>
@@ -42,10 +54,12 @@
         }
       })
       .catch(() => {
+        // Graceful fallback if the API is unreachable
         document.getElementById('permissionsContent').innerHTML =
           '<p style="opacity:0.6;">could not load permissions</p>';
       });
   </script>
+
   <script src="/js/navbar.js"></script>
 </body>
 </html>

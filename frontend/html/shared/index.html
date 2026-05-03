@@ -1,43 +1,59 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
   <head>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 
-    <!-- Bootstrap CSS -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+    <!-- Bootstrap 4 for landing page layout -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+          crossorigin="anonymous">
 
-    <!--Style.css-->
+    <!-- Global branding styles: colours, fonts, hero layout -->
     <link rel="stylesheet" href="../../css/style.css">
 
-    <title>Dig Deep Landing Page</title>
+    <title>Dig Deep</title>
   </head>
   <body>
-  
+
+    <!-- ── LANDING HERO ────────────────────────────────────────────────────
+         Full-viewport row with two columns:
+           Left  (col-md-8): logo + tagline text
+           Right (col-lg-3): sign up / login buttons
+    ──────────────────────────────────────────────────────────────────────── -->
     <main class="container-fluid landing-container">
       <div class="row min-vh-100 align-items-center justify-content-center">
-        
+
+        <!-- Left: branding / hero text -->
         <div class="col-md-8 hero-content">
           <div class="header-text">
             <h1 class="hey">hey!</h1>
             <h2 class="welcome">welcome to...</h2>
           </div>
+          <!-- Logo image sits below the tagline to create the staircase offset look -->
           <img src="../../assets/images/logo.png" alt="Dig Deep Logo" class="main-logo">
         </div>
-    
+
+        <!-- Right: call-to-action buttons -->
         <div class="col-lg-3 d-flex flex-column align-items-center button-group">
+          <!-- Both links go to Flask routes defined in app.py -->
           <a href="signup" class="btn custom-btn">sign up</a>
-          <a href="login" class="btn custom-btn">login</a>
+          <a href="login"  class="btn custom-btn">login</a>
         </div>
-    
+
       </div>
     </main>
 
-    <!-- Optional JavaScript -->
-    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <!-- Bootstrap JS bundle (jQuery → Popper → Bootstrap) -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+            integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+            integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.4.1/dist/js/bootstrap.min.js"
+            integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+            crossorigin="anonymous"></script>
   </body>
 </html>

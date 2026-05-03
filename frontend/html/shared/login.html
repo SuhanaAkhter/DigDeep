@@ -2,40 +2,61 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>DigDeep | Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DigDeep | Login</title>
+
+  <!-- Bootstrap 5 for responsive layout -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <!-- Login/signup shared styles: input colours, arrow button, page title -->
   <link rel="stylesheet" href="/css/login.css">
 </head>
 <body>
+
+  <!-- ── LOGIN PAGE ─────────────────────────────────────────────────────────
+       Two-column layout:
+         Left  (col-md-5): login form
+         Right (col-md-5): decorative logo
+       Form submission is handled by auth.js via fetch to POST /api/auth/login.
+  ──────────────────────────────────────────────────────────────────────────── -->
   <main class="container-fluid min-vh-100 d-flex align-items-center">
     <div class="row w-100 justify-content-center align-items-center">
-      
+
+      <!-- Left: form column -->
       <div class="col-md-5 offset-md-1">
         <h1 class="page-title">login</h1>
-        
+
+        <!-- id="loginForm" is the hook auth.js listens to for submit events -->
         <form id="loginForm" class="custom-form">
           <div class="mb-3">
-            <input type="email" class="form-control custom-input pink" id="email" placeholder="email">
+            <!-- Pink input = email field styling from login.css -->
+            <input type="email" class="form-control custom-input pink"
+                   id="email" placeholder="email">
           </div>
           <div class="mb-3 d-flex align-items-center">
-            <input type="password" class="form-control custom-input pink" id="password" placeholder="password">
+            <input type="password" class="form-control custom-input pink"
+                   id="password" placeholder="password">
+            <!-- Arrow button submits the form; styled to look like an icon, not a button -->
             <button type="submit" class="submit-arrow-btn">
               <img src="/assets/icons/arrow_icon.png" alt="submit" class="submit-arrow">
             </button>
           </div>
+          <!-- Forgot password redirects to the multi-step reset flow -->
           <div class="mb-1">
             <a href="/reset-password" class="forgot-link">forgot your password?</a>
           </div>
         </form>
       </div>
 
+      <!-- Right: decorative logo -->
       <div class="col-md-5">
         <img src="/assets/images/logo.png" alt="Dig Deep Logo" class="signup-logo">
       </div>
+
     </div>
   </main>
 
+  <!-- auth.js handles login form submission and redirects based on role -->
   <script src="/js/auth.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
