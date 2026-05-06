@@ -26,24 +26,22 @@
  *   POST /api/auth/update-password Change the account password.
  */
 
+
 document.addEventListener('DOMContentLoaded', async () => {
 
-  // ── LOAD CURRENT USER INFO ──────────────────────────────────────────────
+  // ── LOAD CURRENT USER INFO ──────────────────────────────
+  let currentRole = null;
 
   try {
     const res  = await fetch('/api/auth/me');
     const data = await res.json();
+    if (data.error) { window.location.href = '/login'; return; }
 
-    if (data.error) {
-      window.location.href = '/login';
-      return;
-    }
-
+    currentRole = data.role;
     document.getElementById('displayEmail').textContent = data.email || '—';
     document.getElementById('displayRole').textContent  = data.role  || '—';
 
-    // Name and picture are stored on the player/coach profile, not on the
-    // auth record, so a second request is needed.
+    // Load name and picture for both roles
     try {
       const pRes  = await fetch('/api/player/me');
       const pData = await pRes.json();
@@ -52,19 +50,29 @@ document.addEventListener('DOMContentLoaded', async () => {
         document.getElementById('displayName').textContent       = pData.name;
         document.getElementById('displayNameInline').textContent = pData.name;
       }
-      if (pData.picture) {
-        showProfilePic(pData.picture);
+      if (pData.picture) showProfilePic(pData.picture);
+
+      // Show player-only profile fields
+      if (data.role === 'player') {
+        document.getElementById('playerProfileFields').style.display = 'block';
+
+        // Load grade, position, jersey from /api/player/profile
+        try {
+          const prRes  = await fetch('/api/player/profile');
+          const prData = await prRes.json();
+          if (prData.grade)        document.getElementById('displayGrade').textContent    = prData.grade;
+          if (prData.position)     document.getElementById('displayPosition').textContent = prData.position;
+          if (prData.jersey_number) document.getElementById('displayJersey').textContent = prData.jersey_number;
+        } catch {}
       }
-    } catch {
-      // Profile info is supplementary; failure here should not block the page.
-    }
+
+    } catch {}
 
   } catch {
     window.location.href = '/login';
   }
 
-  // ── PROFILE PICTURE ──────────────────────────────────────────────────────
-
+  // ── PROFILE PICTURE ─────────────────────────────────────
   const picInput  = document.getElementById('profilePicInput');
   const picBtn    = document.getElementById('profilePicBtn');
   const picCircle = document.getElementById('profilePicDisplay');
@@ -88,7 +96,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       // correct multipart/form-data boundary automatically for FormData.
       const res  = await fetch('/api/player/upload-picture', {
         method: 'POST',
-        body:   formData,
+        body:   formData
+        // No Content-Type header — browser sets multipart boundary automatically
       });
       const data = await res.json();
 
@@ -122,8 +131,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     icon.style.display = 'none';
   }
 
-  // ── EDIT MODAL ───────────────────────────────────────────────────────────
-
+  // ── EDIT MODAL ───────────────────────────────────────────
   const modal       = document.getElementById('editModal');
   const modalTitle  = document.getElementById('modalTitle');
   const modalFields = document.getElementById('modalFields');
@@ -176,6 +184,27 @@ document.addEventListener('DOMContentLoaded', async () => {
         <input type="password" id="modalInput2" placeholder="new password">
         <input type="password" id="modalInput3" placeholder="confirm new password">
       `;
+    } else if (field === 'grade') {
+      modalTitle.textContent = 'change grade';
+      modalFields.innerHTML  = `
+        <input type="text" id="modalInput1"
+               placeholder="e.g. 11"
+               value="${document.getElementById('displayGrade').textContent.replace('—','')}">
+      `;
+    } else if (field === 'position') {
+      modalTitle.textContent = 'change position';
+      modalFields.innerHTML  = `
+        <input type="text" id="modalInput1"
+               placeholder="e.g. Middle, Setter"
+               value="${document.getElementById('displayPosition').textContent.replace('—','')}">
+      `;
+    } else if (field === 'jersey') {
+      modalTitle.textContent = 'change jersey #';
+      modalFields.innerHTML  = `
+        <input type="number" id="modalInput1"
+               placeholder="e.g. 7"
+               value="${document.getElementById('displayJersey').textContent.replace('—','')}">
+      `;
     }
 
     modal.style.display = 'flex';
@@ -200,17 +229,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     const input2 = document.getElementById('modalInput2')?.value.trim();
     const input3 = document.getElementById('modalInput3')?.value.trim();
 
-    // Client-side validation
+    // ── Validation ──
     if (currentField === 'email') {
-      if (!input1)            { modalError.textContent = 'please enter a new email.';    return; }
-      if (input1 !== input2)  { modalError.textContent = 'emails do not match.';         return; }
+      if (!input1) { modalError.textContent = 'please enter a new email.'; return; }
+      if (input1 !== input2) { modalError.textContent = 'emails do not match.'; return; }
     } else if (currentField === 'name') {
-      if (!input1)            { modalError.textContent = 'please enter a name.';         return; }
+      if (!input1) { modalError.textContent = 'please enter a name.'; return; }
     } else if (currentField === 'password') {
-      if (!input1)            { modalError.textContent = 'please enter your current password.'; return; }
-      if (!input2)            { modalError.textContent = 'please enter a new password.'; return; }
-      if (input2.length < 8)  { modalError.textContent = 'password must be at least 8 characters.'; return; }
-      if (input2 !== input3)  { modalError.textContent = 'new passwords do not match.'; return; }
+      if (!input1) { modalError.textContent = 'please enter your current password.'; return; }
+      if (!input2) { modalError.textContent = 'please enter a new password.'; return; }
+      if (input2.length < 8) { modalError.textContent = 'password must be at least 8 characters.'; return; }
+      if (input2 !== input3) { modalError.textContent = 'new passwords do not match.'; return; }
+    } else if (currentField === 'grade' || currentField === 'position' || currentField === 'jersey') {
+      if (!input1) { modalError.textContent = 'please enter a value.'; return; }
     }
 
     modalSave.disabled    = true;
@@ -223,7 +254,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         res  = await fetch('/api/auth/update-email', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ new_email: input1 }),
+          body:    JSON.stringify({ new_email: input1 })
         });
         data = await res.json();
         if (data.success) {
@@ -234,7 +265,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         res  = await fetch('/api/player/update-name', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ name: input1 }),
+          body:    JSON.stringify({ name: input1 })
         });
         data = await res.json();
         if (data.success) {
@@ -246,9 +277,32 @@ document.addEventListener('DOMContentLoaded', async () => {
         res  = await fetch('/api/auth/update-password', {
           method:  'POST',
           headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({ current_password: input1, new_password: input2 }),
+          body:    JSON.stringify({ current_password: input1, new_password: input2 })
         });
         data = await res.json();
+
+      } else if (currentField === 'grade' || currentField === 'position' || currentField === 'jersey') {
+        // Player profile fields — POST to /api/player/update-profile
+        const payload = {};
+        if (currentField === 'grade')    payload.grade          = input1;
+        if (currentField === 'position') payload.position       = input1;
+        if (currentField === 'jersey')   payload.jersey_number  = input1;
+
+        res  = await fetch('/api/player/update-profile', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify(payload)
+        });
+        data = await res.json();
+
+        if (data.success) {
+          if (currentField === 'grade')
+            document.getElementById('displayGrade').textContent    = input1;
+          if (currentField === 'position')
+            document.getElementById('displayPosition').textContent = input1;
+          if (currentField === 'jersey')
+            document.getElementById('displayJersey').textContent   = input1;
+        }
       }
 
       if (data.success) {
@@ -267,9 +321,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Allow the user to confirm the modal by pressing Enter.
   document.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && modal.style.display === 'flex') {
-      modalSave.click();
-    }
+    if (e.key === 'Enter' && modal.style.display === 'flex') modalSave.click();
   });
 
 });

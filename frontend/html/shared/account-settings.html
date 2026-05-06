@@ -26,14 +26,15 @@
          Logic handled entirely by account-settings.js.
     ─────────────────────────────────────────────────────────────────────── -->
     <div class="row mt-5">
-      <div class="col-md-5">
+      <div class="col-md-6">
 
+        <!-- Account Card -->
         <div class="settings-card">
           <h2 class="settings-title">account information</h2>
 
           <div class="d-flex align-items-start gap-4 mt-3">
 
-            <!-- Profile picture section -->
+            <!-- Profile Picture -->
             <div class="profile-pic-wrapper">
 
               <!-- Clicking the circle also triggers the file input -->
@@ -60,11 +61,10 @@
               <div class="profile-role-display" id="displayRole">—</div>
             </div>
 
-            <!-- Editable info fields -->
+            <!-- Info Fields -->
             <div class="flex-grow-1">
 
-              <!-- Each row has a label, a live-updated value, and an edit button.
-                   data-field tells account-settings.js which modal form to show. -->
+              <!-- Account fields — all roles -->
               <div class="info-row">
                 <span class="info-label">email:</span>
                 <span class="info-value" id="displayEmail">—</span>
@@ -84,6 +84,30 @@
                 <button class="edit-btn" data-field="password">edit</button>
               </div>
 
+              <!-- Player-only profile fields -->
+              <div id="playerProfileFields" style="display:none;">
+                <div style="border-top:1px solid rgba(107,91,78,0.15);
+                            margin:14px 0 12px; padding-top:12px;
+                            font-size:0.8rem; opacity:0.6; font-weight:700;">
+                  player profile
+                </div>
+                <div class="info-row">
+                  <span class="info-label">grade:</span>
+                  <span class="info-value" id="displayGrade">—</span>
+                  <button class="edit-btn" data-field="grade">edit</button>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">position:</span>
+                  <span class="info-value" id="displayPosition">—</span>
+                  <button class="edit-btn" data-field="position">edit</button>
+                </div>
+                <div class="info-row">
+                  <span class="info-label">jersey #:</span>
+                  <span class="info-value" id="displayJersey">—</span>
+                  <button class="edit-btn" data-field="jersey">edit</button>
+                </div>
+              </div>
+
             </div>
           </div>
         </div>
@@ -92,11 +116,7 @@
     </div>
   </div>
 
-  <!-- ── EDIT MODAL ─────────────────────────────────────────────────────────
-       Single reusable modal that account-settings.js populates dynamically
-       with different input fields depending on which "edit" button was clicked
-       (email → two email inputs, name → one text input, password → three password inputs).
-  ──────────────────────────────────────────────────────────────────────────── -->
+  <!-- Edit Modal -->
   <div class="settings-modal-overlay" id="editModal" style="display:none;">
     <div class="settings-modal">
       <div class="settings-modal-header">
@@ -114,7 +134,6 @@
     </div>
   </div>
 
-  <!-- account-settings.js: loads user info, handles picture upload, edit modal -->
   <script src="/js/account-settings.js"></script>
 </body>
 </html>
