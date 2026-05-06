@@ -295,21 +295,21 @@ def player_stats_page():
 # Shared page routes (login required, any role)
 # ---------------------------------------------------------------------------
 
-@app.route('/permissions')
-def permissions_page():
-    """Render the permissions settings page.
+# @app.route('/permissions')
+# def permissions_page():
+#     """Render the permissions settings page.
 
-    Coaches see the coach-specific template; players see their own view.
-    Redirects to the login page when unauthenticated.
-    """
-    guard = require_login()
-    if guard:
-        return guard
+#     Coaches see the coach-specific template; players see their own view.
+#     Redirects to the login page when unauthenticated.
+#     """
+#     guard = require_login()
+#     if guard:
+#         return guard
 
-    role = session.get('role')
-    if role == 'coach':
-        return render_template('coach/coach-permissions.html', role=role)
-    return render_template('player/player-permissions.html', role=role)
+#     role = session.get('role')
+#     if role == 'coach':
+#         return render_template('coach/coach-permissions.html', role=role)
+#     return render_template('player/player-permissions.html', role=role)
 
 
 @app.route('/team-stats')

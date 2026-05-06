@@ -68,7 +68,6 @@
               <div class="stat-value">-</div>
             </div>
           </div>
-
           <div class="col-md-4">
             <div class="stat-card brown">
               <p class="stat-label">digs</p>
@@ -83,12 +82,11 @@
       <div class="col-md-4 offset-md-1">
         <div class="featured-sidebar">
           <h2 class="sidebar-title">featured games</h2>
-          <!-- Link only shown to coaches in practice (both roles can see team-stats) -->
-          <a href="manage-games" style="color: inherit; text-decoration: underline;">
-            <p>view all games</p>
-          </a>
-          <!-- Cards injected here by loadFeaturedGames() in team-stats.js
-               Each card shows opponent name + summed set score (e.g. 75–60) -->
+          {% if role == 'coach' %}
+            <a href="manage-games" style="color: inherit; text-decoration: underline;">
+              <p>view all games</p>
+            </a>
+          {% endif %}
           <div id="featuredGamesList"></div>
         </div>
       </div>
