@@ -14,6 +14,19 @@
       - Add player modal posts to POST /api/players/add
     All dynamic behaviour is in player.js.
   -->
+  <!--
+    manage-players.html
+    -------------------
+    Coach-only page for viewing and managing the team roster.
+    Features:
+      - Player grid populated from GET /api/players/
+      - Search by name (live filter, no server round-trip)
+      - Filter by position via checkboxes
+      - Click a player card to open the detail sidebar
+      - Detail sidebar shows info + toggle-able season stat preview
+      - Add player modal posts to POST /api/players/add
+    All dynamic behaviour is in player.js.
+  -->
   <meta charset="UTF-8">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Dashboard base styles -->
@@ -31,7 +44,7 @@
 
     <div class="row">
 
-      <!-- ── LEFT: Player grid + search/filter ──────────────────────────── -->
+      <!-- PLAYERS GRID -->
       <div class="col-md-8">
         <h1 class="page-header-text">players</h1>
 
@@ -41,14 +54,13 @@
           <input type="text" id="searchInput" class="search-input" placeholder="name...">
           <div class="filter-group d-flex align-items-center gap-2">
             <span>filter by:</span>
-            <!-- "Right" starts checked so all players show on load -->
-            <label><input type="checkbox" class="position-filter" value="Right"     checked> right</label>
-            <label><input type="checkbox" class="position-filter" value="Left">              left</label>
-            <label><input type="checkbox" class="position-filter" value="Setter">            setter</label>
-            <label><input type="checkbox" class="position-filter" value="Libero">            libero</label>
-            <label><input type="checkbox" class="position-filter" value="Middle">            middle</label>
-            <label><input type="checkbox" class="position-filter" value="Outside">           outside</label>
-            <label><input type="checkbox" class="position-filter" value="Opposite">          opposite</label>
+            <label><input type="checkbox" class="position-filter" value="Right"> right</label>
+            <label><input type="checkbox" class="position-filter" value="Left"> left</label>
+            <label><input type="checkbox" class="position-filter" value="Setter"> setter</label>
+            <label><input type="checkbox" class="position-filter" value="Libero"> libero</label>
+            <label><input type="checkbox" class="position-filter" value="Middle"> middle</label>
+            <label><input type="checkbox" class="position-filter" value="Outside"> outside</label>
+            <label><input type="checkbox" class="position-filter" value="Opposite"> opposite</label>
           </div>
         </div>
 
@@ -57,8 +69,7 @@
         <div id="playersGrid" class="row row-cols-4 g-4"></div>
       </div>
 
-      <!-- ── RIGHT: Player detail sidebar ───────────────────────────────── -->
-      <!-- Hidden until a player card is clicked; shown by showPlayerDetail() -->
+      <!-- PLAYER DETAIL SIDEBAR -->
       <div class="col-md-3 offset-md-1">
         <div id="playerDetailCard" class="player-detail-card" style="display:none;">
           <h2 id="playerName" class="linda-title"></h2>
@@ -72,11 +83,16 @@
             </div>
           </div>
 
-          <!-- Toggle button: fetches season totals from
-               GET /api/stats/player/<id>/totals and shows/hides the mini cards -->
-          <button class="view-stats-btn mt-4" id="viewStatsBtn">view stats</button>
+          <!-- Action buttons -->
+          <div class="d-flex gap-2 mt-4">
+            <button class="view-stats-btn" id="viewStatsBtn" style="flex:1;">view stats</button>
+            <button class="view-stats-btn" id="editPlayerBtn"
+                    style="flex:1; background:var(--pill-pink);">edit</button>
+            <button class="view-stats-btn" id="deletePlayerBtn"
+                    style="flex:1; background:#D9AEAE; color:#6b2b2b;">delete</button>
+          </div>
 
-          <!-- Stat preview cards — hidden until "view stats" is clicked -->
+          <!-- Stat preview (toggled by "view stats") -->
           <div id="playerStatsPreview" class="mt-4" style="display:none;">
             <div class="row g-2 mt-1">
               <div class="col-6">
@@ -111,12 +127,7 @@
     </div>
   </div>
 
-  <!-- ── ADD PLAYER MODAL ───────────────────────────────────────────────────
-       Triggered by clicking the "add player" card in the grid.
-       On save, player.js POSTs to /api/players/add (coach-only route).
-       The new player gets a row in the players table with no linked user_id
-       (they can sign up separately and be linked later).
-  ──────────────────────────────────────────────────────────────────────────── -->
+  <!-- ADD PLAYER MODAL -->
   <div id="addPlayerModal" class="custom-modal">
     <div class="modal-content-small">
       <div class="modal-header-custom">
@@ -128,29 +139,104 @@
 
           <div>
             <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">name</label>
-            <input type="text" id="newPlayerName" class="lorem-input w-100 mt-1"
-                   placeholder="player name">
+            <input type="text" id="newPlayerName" class="lorem-input w-100 mt-1" placeholder="player name">
           </div>
           <div>
             <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">grade</label>
-            <input type="text" id="newPlayerGrade" class="lorem-input w-100 mt-1"
-                   placeholder="e.g. 11">
+            <input type="text" id="newPlayerGrade" class="lorem-input w-100 mt-1" placeholder="e.g. 11">
           </div>
           <div>
             <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">position</label>
-            <input type="text" id="newPlayerPosition" class="lorem-input w-100 mt-1"
-                   placeholder="e.g. Middle, Setter">
+            <input type="text" id="newPlayerPosition" class="lorem-input w-100 mt-1" placeholder="e.g. Middle, Setter">
           </div>
           <div>
             <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">jersey #</label>
-            <input type="number" id="newPlayerJersey" class="lorem-input w-100 mt-1"
-                   placeholder="e.g. 7">
+            <input type="number" id="newPlayerJersey" class="lorem-input w-100 mt-1" placeholder="e.g. 7">
           </div>
 
           <!-- Error message shown inline if validation fails or API returns error -->
           <p id="addPlayerError" style="color:#a05050;font-size:0.85rem;min-height:18px;"></p>
-          <button id="saveAddPlayer" class="save-btn-floating"
-                  style="position:static;margin-top:4px;">add player</button>
+          <button id="saveAddPlayer" class="save-btn-floating" style="position:static;margin-top:4px;">add player</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDIT PLAYER MODAL -->
+  <div id="editPlayerModal" class="custom-modal">
+    <div class="modal-content-small">
+      <div class="modal-header-custom">
+        <span>edit player — <span id="editPlayerTitle" class="text-pink"></span></span>
+        <button class="close-modal" id="closeEditPlayer">✖</button>
+      </div>
+      <div class="modal-body-custom" style="padding:20px;">
+
+        <!-- Section 1: Profile fields -->
+        <p style="font-weight:900;color:#D9AEAE;margin-bottom:10px;font-size:0.85rem;">
+          profile
+        </p>
+        <div class="d-flex flex-column gap-3">
+          <div>
+            <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">name</label>
+            <input type="text" id="editName" class="lorem-input w-100 mt-1">
+          </div>
+          <div>
+            <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">grade</label>
+            <input type="text" id="editGrade" class="lorem-input w-100 mt-1">
+          </div>
+          <div>
+            <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">position</label>
+            <input type="text" id="editPosition" class="lorem-input w-100 mt-1">
+          </div>
+          <div>
+            <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">jersey #</label>
+            <input type="number" id="editJersey" class="lorem-input w-100 mt-1">
+          </div>
+        </div>
+
+        <!-- Section 2: Account fields (only if player has a linked account) -->
+        <div id="editAccountSection">
+          <p style="font-weight:900;color:#D9AEAE;margin:18px 0 10px;font-size:0.85rem;">
+            account
+          </p>
+          <div class="d-flex flex-column gap-3">
+            <div>
+              <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">email</label>
+              <input type="email" id="editEmail" class="lorem-input w-100 mt-1"
+                     placeholder="leave blank to keep current">
+            </div>
+            <div>
+              <label style="font-weight:bold;color:var(--text-brown);font-size:0.9rem;">
+                new password
+              </label>
+              <input type="password" id="editPassword" class="lorem-input w-100 mt-1"
+                     placeholder="leave blank to keep current">
+            </div>
+          </div>
+        </div>
+
+        <p id="editPlayerError" style="color:#a05050;font-size:0.85rem;min-height:18px;margin-top:12px;"></p>
+        <p id="editPlayerSuccess" style="color:#5a7a5a;font-size:0.85rem;min-height:18px;"></p>
+        <button id="saveEditPlayer" class="save-btn-floating" style="position:static;margin-top:4px;">
+          save changes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DELETE CONFIRM MODAL -->
+  <div id="deletePlayerModal" class="custom-modal">
+    <div class="modal-content-alert">
+      <div class="modal-header-alert">
+        <span>delete player?</span>
+        <button class="close-modal-sm" id="closeDeletePlayer">✖</button>
+      </div>
+      <div class="modal-body-alert text-center p-3">
+        <p>this will permanently remove <strong id="deletePlayerName"></strong>
+           and all their stats. this cannot be undone.</p>
+        <div class="d-flex justify-content-center gap-3">
+          <button class="alert-btn" id="confirmDeletePlayer">yes, delete</button>
+          <button class="alert-btn" id="cancelDeletePlayer">no, go back</button>
         </div>
       </div>
     </div>

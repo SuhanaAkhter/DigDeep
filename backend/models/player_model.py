@@ -15,8 +15,7 @@ transformation.
 
 import sqlite3
 
-
-def get_all_players(db: sqlite3.Connection, team_id: int) -> list[dict]:
+def get_all_players(db, team_id):
     """Return every player on a team ordered alphabetically by name.
 
     Used by the coach dashboard and the manage-players page to build the
@@ -33,18 +32,17 @@ def get_all_players(db: sqlite3.Connection, team_id: int) -> list[dict]:
     -------
     list[dict]
         A list of player profile dicts, each containing the keys ``id``,
-        ``name``, ``grade``, ``jersey_number``, ``position``, and
-        ``picture``.  Returns an empty list when the team has no players.
+        ``name``, ``grade``, ``jersey_number``, ``position``, ``picture``
+        ``user_id`` and ``email``.  Returns an empty list when the team has no players.
     """
-    rows = db.execute(
-        """
-        SELECT p.id, p.name, p.grade, p.jersey_number, p.position, p.picture
-        FROM   players p
-        WHERE  p.team_id = ?
-        ORDER  BY p.name
-        """,
-        (team_id,),
-    ).fetchall()
+    rows = db.execute("""
+        SELECT p.id, p.name, p.grade, p.jersey_number, p.position,
+               p.picture, p.user_id, u.email
+        FROM players p
+        LEFT JOIN users u ON u.id = p.user_id
+        WHERE p.team_id = ?
+        ORDER BY p.name
+    """, (team_id,)).fetchall()
     return [dict(row) for row in rows]
 
 

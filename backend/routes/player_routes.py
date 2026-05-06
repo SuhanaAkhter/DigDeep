@@ -272,6 +272,65 @@ def upload_picture():
     except Exception as exc:
         return jsonify({'error': f'server error: {str(exc)}'}), 500
 
+@me_bp.route('/profile', methods=['GET'])
+def get_player_profile():
+    """GET /api/player/profile — returns grade, position, jersey for the logged-in player."""
+    if 'user_id' not in session:
+        return jsonify({'error': 'not logged in'}), 401
+    if session.get('role') != 'player':
+        return jsonify({'error': 'players only'}), 403
+
+    db  = get_db()
+    row = db.execute(
+        'SELECT grade, position, jersey_number FROM players WHERE user_id = ?',
+        (session['user_id'],)
+    ).fetchone()
+
+    if not row:
+        return jsonify({'error': 'player not found'}), 404
+
+    return jsonify({
+        'grade':         row['grade'],
+        'position':      row['position'],
+        'jersey_number': row['jersey_number']
+    })
+
+
+@me_bp.route('/update-profile', methods=['POST'])
+def update_player_profile():
+    """
+    POST /api/player/update-profile
+    Players can update their own grade, position, and jersey number.
+    Only fields present in the request body are changed.
+    """
+    if 'user_id' not in session:
+        return jsonify({'error': 'not logged in'}), 401
+    if session.get('role') != 'player':
+        return jsonify({'error': 'players only'}), 403
+
+    db   = get_db()
+    data = request.get_json()
+
+    fields = []
+    values = []
+
+    grade   = data.get('grade')
+    pos     = data.get('position')
+    jersey  = data.get('jersey_number')
+
+    if grade  is not None: fields.append('grade = ?');          values.append(grade)
+    if pos    is not None: fields.append('position = ?');        values.append(pos)
+    if jersey is not None: fields.append('jersey_number = ?');   values.append(jersey)
+
+    if not fields:
+        return jsonify({'error': 'nothing to update'}), 400
+
+    values.append(session['user_id'])
+    db.execute(
+        f"UPDATE players SET {', '.join(fields)} WHERE user_id = ?", values
+    )
+    db.commit()
+    return jsonify({'success': True})
 
 # ---------------------------------------------------------------------------
 # /api/players  (plural — coach roster management)
@@ -451,3 +510,63 @@ def add_player():
     )
     db.commit()
     return jsonify({'success': True, 'player_id': cursor.lastrowid})
+
+@player_bp.route('/<int:player_id>', methods=['DELETE'])
+def delete_player(player_id):
+    """DELETE /api/players/<player_id> — coach only. Removes the player row."""
+    if session.get('role') != 'coach':
+        return jsonify({'error': 'unauthorized'}), 403
+    db = get_db()
+    db.execute('DELETE FROM players WHERE id = ?', (player_id,))
+    db.commit()
+    return jsonify({'success': True})
+
+
+@player_bp.route('/<int:player_id>/account', methods=['POST'])
+def update_player_account(player_id):
+    """
+    POST /api/players/<player_id>/account
+    Coach-only. Updates the email and/or password of the user account
+    linked to a player. Only fields provided are changed.
+    """
+    if session.get('role') != 'coach':
+        return jsonify({'error': 'unauthorized'}), 403
+
+    db   = get_db()
+    data = request.get_json()
+
+    # Look up which user account is linked to this player
+    row = db.execute(
+        'SELECT user_id FROM players WHERE id = ?', (player_id,)
+    ).fetchone()
+
+    if not row or not row['user_id']:
+        return jsonify({'error': 'this player has no linked account'}), 404
+
+    user_id   = row['user_id']
+    new_email = data.get('email', '').strip()
+    new_pass  = data.get('password', '').strip()
+
+    if new_email:
+        # Check email not already taken by someone else
+        existing = db.execute(
+            'SELECT id FROM users WHERE email = ? AND id != ?',
+            (new_email, user_id)
+        ).fetchone()
+        if existing:
+            return jsonify({'error': 'that email is already in use'}), 409
+        db.execute(
+            'UPDATE users SET email = ? WHERE id = ?', (new_email, user_id)
+        )
+
+    if new_pass:
+        if len(new_pass) < 8:
+            return jsonify({'error': 'password must be at least 8 characters'}), 400
+        from werkzeug.security import generate_password_hash
+        db.execute(
+            'UPDATE users SET password_hash = ? WHERE id = ?',
+            (generate_password_hash(new_pass), user_id)
+        )
+
+    db.commit()
+    return jsonify({'success': True})
