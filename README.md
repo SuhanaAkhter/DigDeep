@@ -70,7 +70,36 @@ For support or questions, contact the developers:
 
 ## Sources
 
-[List of sources consulted during development. To be filled by developers using reference tracker.]
+# Backend Framework
+
+Pallets Projects. (2010). Flask: Web development, one drop at a time (Version 3.1.x) [Software documentation]. https://flask.palletsprojects.com/en/stable/
+Pallets Projects. (2010). Flask API reference (Version 3.1.x) [Software documentation]. https://flask.palletsprojects.com/en/stable/api/
+Pallets Projects. (2010). Flask blueprints and views (Version 3.1.x) [Software documentation]. https://flask.palletsprojects.com/en/stable/tutorial/views/
+Pallets Projects. (2010). Flask configuration handling (Version 3.1.x) [Software documentation]. https://flask.palletsprojects.com/en/stable/config/
+
+# Security
+
+Pallets Projects. (2010). Werkzeug utilities: Security helpers (Version 3.1.x) [Software documentation]. https://werkzeug.palletsprojects.com/en/stable/utils/
+Python Software Foundation. (2012). hmac — Keyed-hashing for message authentication (Python 3.x) [Software documentation]. https://docs.python.org/3/library/hmac.html
+Python Software Foundation. (2003). secrets — Generate secure random numbers for managing secrets (Python 3.x) [Software documentation]. https://docs.python.org/3/library/secrets.html
+
+# Database
+
+D. Richard Hipp. (2000). SQLite home page [Software]. https://sqlite.org/
+D. Richard Hipp. (2000). SQLite documentation [Software documentation]. https://sqlite.org/docs.html
+D. Richard Hipp. (2000). SQL as understood by SQLite [Software documentation]. https://sqlite.org/lang.html
+D. Richard Hipp. (2000). SQLite foreign key support [Software documentation]. https://sqlite.org/foreignkeys.html
+Python Software Foundation. (2004). sqlite3 — DB-API 2.0 interface for SQLite databases (Python 3.x) [Software documentation]. https://docs.python.org/3/library/sqlite3.html
+
+# Email
+
+Pallets Community Ecosystem. (n.d.). Flask-Mail: SMTP mail sending for Flask applications (Version 0.10.0) [Software documentation]. https://github.com/pallets-eco/flask-mail
+Pallets Community Ecosystem. (n.d.). Flask-Mail (Version 0.10.0) [Software package]. PyPI. https://pypi.org/project/Flask-Mail/
+
+# File Handling
+
+Pallets Projects. (2010). Werkzeug utilities: secure_filename (Version 3.1.x) [Software documentation]. https://werkzeug.palletsprojects.com/en/stable/utils/#werkzeug.utils.secure_filename
+
 
 - Flask Documentation: Used for building the web application framework.
 - SQLite Documentation: Used for database schema design and queries.
